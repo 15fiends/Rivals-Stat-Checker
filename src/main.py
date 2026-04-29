@@ -27,8 +27,12 @@ data = [
 df = pd.DataFrame(data)
 
 role_filter = st.selectbox("Filter by role", ["All"] + sorted(df["role"].unique().tolist()))
+search_text = st.text_input("Search for a character")
 
 if role_filter != "All":
     df = df[df["role"] == role_filter]
+
+if search_text.strip() != "":
+    df = df[df["name"].str.contains(search_text, case=False, na=False)]
 
 st.dataframe(df, use_container_width=True, hide_index=True)
