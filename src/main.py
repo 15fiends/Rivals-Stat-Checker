@@ -36,3 +36,13 @@ if search_text.strip() != "":
     df = df[df["name"].str.contains(search_text, case=False, na=False)]
 
 st.dataframe(df, use_container_width=True, hide_index=True)
+
+selected_character = st.selectbox("Choose a character to view details", df["name"].tolist())
+
+character_info = df[df["name"] == selected_character].iloc[0]
+
+st.subheader(f"{character_info['name']} Details")
+st.write(f"**Role:** {character_info['role']}")
+st.write(f"**Health:** {character_info['health']}")
+st.write(f"**Mobility:** {character_info['mobility']}")
+st.write(f"**Damage:** {character_info['damage']}")
