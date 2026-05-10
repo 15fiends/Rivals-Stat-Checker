@@ -656,6 +656,7 @@ filtered_df = filtered_df[filtered_df["health"] >= min_health]
 filtered_df = filtered_df[filtered_df["damage"] >= min_damage]
 filtered_df = filtered_df[filtered_df["mobility"] >= min_mobility]
 filtered_df = filtered_df[filtered_df["difficulty"] <= max_difficulty]
+filtered_character_names = filtered_df["name"].tolist()
 
 tabs = st.tabs(["Overview", "Details", "Comparison", "Tier Lists", "Team Comps"])
 
@@ -688,7 +689,7 @@ with tabs[1]:
     if filtered_df.empty:
         st.warning("No characters match your current filters.")
     else:
-        selected_character = st.selectbox("Choose a character", filtered_df["name"].tolist())
+        selected_character = st.selectbox("Choose a character", filtered_character_names)
         show_character_header(selected_character)
 
         character_info = filtered_df[filtered_df["name"] == selected_character].iloc[0]
@@ -796,96 +797,98 @@ with tabs[1]:
 with tabs[2]:
     st.markdown("## Character Comparison")
 
-    compare_options = filtered_df["name"].tolist() if not filtered_df.empty else all_character_names
-    compare_col1, compare_col2 = st.columns(2)
+    if filtered_df.empty:
+        st.warning("No characters match your current filters.")
+    else:
+        compare_col1, compare_col2 = st.columns(2)
 
-    with compare_col1:
-        compare_1 = st.selectbox("First character", compare_options, key="compare_1")
-        show_character_header(compare_1)
+        with compare_col1:
+            compare_1 = st.selectbox("First character", filtered_character_names, key="compare_1")
+            show_character_header(compare_1)
 
-    with compare_col2:
-        compare_2 = st.selectbox("Second character", compare_options, key="compare_2")
-        show_character_header(compare_2)
+        with compare_col2:
+            compare_2 = st.selectbox("Second character", filtered_character_names, key="compare_2")
+            show_character_header(compare_2)
 
-    first_row = full_df[full_df["name"] == compare_1].iloc[0]
-    second_row = full_df[full_df["name"] == compare_2].iloc[0]
-    health_min = full_df["health"].min()
-    health_max = full_df["health"].max()
+        first_row = full_df[full_df["name"] == compare_1].iloc[0]
+        second_row = full_df[full_df["name"] == compare_2].iloc[0]
+        health_min = full_df["health"].min()
+        health_max = full_df["health"].max()
 
-    def normalize_health(health_value: int) -> float:
-        if health_max > health_min:
-            return round(1 + 4 * ((health_value - health_min) / (health_max - health_min)), 2)
-        return 3
+        def normalize_health(health_value: int) -> float:
+            if health_max > health_min:
+                return round(1 + 4 * ((health_value - health_min) / (health_max - health_min)), 2)
+            return 3
 
-    stat_labels = ["Health Rating", "Mobility", "Damage", "Difficulty"]
-    first_values = [
-        normalize_health(first_row["health"]),
-        first_row["mobility"],
-        first_row["damage"],
-        first_row["difficulty"],
-    ]
-    second_values = [
-        normalize_health(second_row["health"]),
-        second_row["mobility"],
-        second_row["damage"],
-        second_row["difficulty"],
-    ]
+        stat_labels = ["Health Rating", "Mobility", "Damage", "Difficulty"]
+        first_values = [
+            normalize_health(first_row["health"]),
+            first_row["mobility"],
+            first_row["damage"],
+            first_row["difficulty"],
+        ]
+        second_values = [
+            normalize_health(second_row["health"]),
+            second_row["mobility"],
+            second_row["damage"],
+            second_row["difficulty"],
+        ]
 
-    comparison_fig = go.Figure()
-    comparison_fig.add_trace(
-        go.Scatterpolar(
-            r=first_values + [first_values[0]],
-            theta=stat_labels + [stat_labels[0]],
-            fill="toself",
-            name=compare_1,
-            line=dict(color=get_role_color(first_row["role"]), width=3),
-            fillcolor=get_role_fill_color(first_row["role"]),
+        comparison_fig = go.Figure()
+        comparison_fig.add_trace(
+            go.Scatterpolar(
+                r=first_values + [first_values[0]],
+                theta=stat_labels + [stat_labels[0]],
+                fill="toself",
+                name=compare_1,
+                line=dict(color=get_role_color(first_row["role"]), width=3),
+                fillcolor=get_role_fill_color(first_row["role"]),
+            )
         )
-    )
-    comparison_fig.add_trace(
-        go.Scatterpolar(
-            r=second_values + [second_values[0]],
-            theta=stat_labels + [stat_labels[0]],
-            fill="toself",
-            name=compare_2,
-            line=dict(color=get_role_color(second_row["role"]), width=3),
-            fillcolor=get_role_fill_color(second_row["role"]),
+        comparison_fig.add_trace(
+            go.Scatterpolar(
+                r=second_values + [second_values[0]],
+                theta=stat_labels + [stat_labels[0]],
+                fill="toself",
+                name=compare_2,
+                line=dict(color=get_role_color(second_row["role"]), width=3),
+                fillcolor=get_role_fill_color(second_row["role"]),
+            )
         )
-    )
 
-    comparison_fig.update_layout(
-        polar=dict(
-            bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(
-                visible=True,
-                range=[0, 5],
-                tickvals=[1, 2, 3, 4, 5],
-                gridcolor="rgba(255,255,255,0.12)",
-                linecolor="rgba(255,255,255,0.18)",
-                tickfont=dict(color="white"),
+        comparison_fig.update_layout(
+            polar=dict(
+                bgcolor="rgba(0,0,0,0)",
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 5],
+                    tickvals=[1, 2, 3, 4, 5],
+                    gridcolor="rgba(255,255,255,0.12)",
+                    linecolor="rgba(255,255,255,0.18)",
+                    tickfont=dict(color="white"),
+                ),
+                angularaxis=dict(
+                    gridcolor="rgba(255,255,255,0.10)",
+                    linecolor="rgba(255,255,255,0.18)",
+                    tickfont=dict(color="white", size=12),
+                ),
             ),
-            angularaxis=dict(
-                gridcolor="rgba(255,255,255,0.10)",
-                linecolor="rgba(255,255,255,0.18)",
-                tickfont=dict(color="white", size=12),
-            ),
-        ),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="white"),
-        margin=dict(l=30, r=30, t=30, b=30),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
-    )
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="white"),
+            margin=dict(l=30, r=30, t=30, b=30),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+        )
 
-    st.markdown(
-        """
-        <p class="detail-note">
-            Health is normalized into a 1-5 rating here so it compares cleanly with mobility, damage, and difficulty.
-        </p>
-        """,
-        unsafe_allow_html=True
-    )
-    st.plotly_chart(comparison_fig, use_container_width=True, theme=None)
+        st.markdown(
+            """
+            <p class="detail-note">
+                Health is normalized into a 1-5 rating here so it compares cleanly with mobility, damage, and difficulty.
+            </p>
+            """,
+            unsafe_allow_html=True
+        )
+        st.plotly_chart(comparison_fig, use_container_width=True, theme=None)
 
 with tabs[3]:
     st.markdown("## Tier Lists")
@@ -928,13 +931,16 @@ with tabs[3]:
 
     current_tierlist = sanitize_tierlist(st.session_state.current_tierlist_data)
 
-    assign_character = st.selectbox("Character to place", all_character_names, key="tier_character")
-    assign_tier = st.selectbox("Rank", ["S", "A", "B", "C", "D"], key="tier_rank")
+    if filtered_df.empty:
+        st.warning("No characters match your current filters.")
+    else:
+        assign_character = st.selectbox("Character to place", filtered_character_names, key="tier_character")
+        assign_tier = st.selectbox("Rank", ["S", "A", "B", "C", "D"], key="tier_rank")
 
-    if st.button("Assign to Tier"):
-        assign_character_to_tier(current_tierlist, assign_character, assign_tier)
-        st.session_state.current_tierlist_data = current_tierlist
-        st.rerun()
+        if st.button("Assign to Tier"):
+            assign_character_to_tier(current_tierlist, assign_character, assign_tier)
+            st.session_state.current_tierlist_data = current_tierlist
+            st.rerun()
 
     st.markdown("<div class='tier-s'><h3>S Rank</h3></div>", unsafe_allow_html=True)
     render_character_icon_row(current_tierlist["S"], size=72)
@@ -993,7 +999,7 @@ with tabs[4]:
     cols_bottom = st.columns(3)
     all_cols = cols_top + cols_bottom
 
-    options = [""] + all_character_names
+    options = [""] + filtered_character_names
     for i, col in enumerate(all_cols):
         with col:
             selected = st.selectbox(
