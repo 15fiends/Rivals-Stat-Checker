@@ -1,7 +1,19 @@
+import os
 import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="Rivals Stat Checker", layout="wide")
+
+APP_PATH = os.path.dirname(os.path.abspath(__file__))
+
+
+def get_image_path(filename):
+    return os.path.join(APP_PATH, "data", "images", filename)
+
+
+def get_image_filename(character_name):
+    return character_name.lower().replace("-", "").replace(" ", "_").replace("&", "and").replace("__", "_") + ".png"
+
 
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
@@ -156,6 +168,30 @@ st.markdown("""
         border-radius: 14px;
         padding: 14px;
         margin-bottom: 12px;
+    }
+
+    .profile-wrap {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 12px;
+    }
+
+    .profile-image {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #00d8ff;
+        box-shadow: 0 0 18px rgba(0, 216, 255, 0.35);
+        background-color: #111827;
+    }
+
+    .profile-name {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -321,13 +357,28 @@ with tab2:
         character_info = filtered_df[filtered_df["name"] == selected_character].iloc[0]
         role_class = character_info["role"].lower().replace(" ", "-")
 
+        image_filename = get_image_filename(character_info["name"])
+        image_path = get_image_path(image_filename)
+
+        if os.path.exists(image_path):
+            st.markdown(
+                f"""
+                <div class="profile-wrap">
+                    <img src="file://{image_path}" class="profile-image">
+                    <div class="profile-name">{character_info['name']}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.subheader(character_info["name"])
+
         c1, c2 = st.columns([1, 1])
 
         with c1:
             st.markdown(f"""
             <div class="custom-card">
-                <div class="stat-label">Character</div>
-                <div class="stat-value">{character_info['name']}</div>
+                <div class="stat-label">Role</div>
                 <div class="role-pill {role_class}">{character_info['role']}</div>
                 <br><br>
                 <div class="stat-label">Range Type</div>
@@ -380,6 +431,39 @@ with tab3:
 
     first_row = full_df[full_df["name"] == compare_1].iloc[0]
     second_row = full_df[full_df["name"] == compare_2].iloc[0]
+
+    image_1 = get_image_path(get_image_filename(compare_1))
+    image_2 = get_image_path(get_image_filename(compare_2))
+
+    img_col1, img_col2 = st.columns(2)
+
+    with img_col1:
+        if os.path.exists(image_1):
+            st.markdown(
+                f"""
+                <div class="profile-wrap">
+                    <img src="file://{image_1}" class="profile-image">
+                    <div class="profile-name">{compare_1}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.subheader(compare_1)
+
+    with img_col2:
+        if os.path.exists(image_2):
+            st.markdown(
+                f"""
+                <div class="profile-wrap">
+                    <img src="file://{image_2}" class="profile-image">
+                    <div class="profile-name">{compare_2}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.subheader(compare_2)
 
     comparison_rows = []
     winner_rows = []
