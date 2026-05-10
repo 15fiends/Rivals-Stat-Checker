@@ -114,30 +114,28 @@ def show_character_header(character_name: str) -> None:
         st.subheader(character_name)
 
 
-def render_character_icon_row(character_names: list[str], size: int = 56) -> None:
+def render_character_icon_row(character_names: list[str], size: int = 80) -> None:
     if not character_names:
         st.info("No characters assigned yet.")
         return
 
-    html = "<div class='icon-row'>"
-    for name in character_names:
-        image_uri = get_image_data_uri(get_image_path(name))
-        if image_uri:
-            html += f"""
-            <div class="icon-card">
-                <img src="{image_uri}" class="mini-icon" style="width:{size}px;height:{size}px;">
-                <div class="icon-name">{name}</div>
-            </div>
-            """
-        else:
-            html += f"""
-            <div class="icon-card">
-                <div class="mini-icon missing-icon" style="width:{size}px;height:{size}px;">?</div>
-                <div class="icon-name">{name}</div>
-            </div>
-            """
-    html += "</div>"
-    st.markdown(html, unsafe_allow_html=True)
+    cols_per_row = 6
+
+    for start in range(0, len(character_names), cols_per_row):
+        row_names = character_names[start:start + cols_per_row]
+        cols = st.columns(cols_per_row)
+
+        for col_index, col in enumerate(cols):
+            if col_index < len(row_names):
+                name = row_names[col_index]
+                image_path = get_image_path(name)
+
+                with col:
+                    if os.path.exists(image_path):
+                        st.image(image_path, width=size)
+                    else:
+                        st.write("No image")
+                    st.caption(name)
 
 
 ensure_data_files()
@@ -254,56 +252,45 @@ st.markdown("""
         color: white;
     }
 
-    .icon-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 10px;
-        margin-bottom: 10px;
+    .tier-s {
+        background: rgba(45, 180, 80, 0.18);
+        padding: 12px;
+        border-radius: 14px;
+        margin-top: 12px;
     }
 
-    .icon-card {
-        width: 84px;
-        text-align: center;
+    .tier-a {
+        background: rgba(123, 201, 67, 0.18);
+        padding: 12px;
+        border-radius: 14px;
+        margin-top: 12px;
     }
 
-    .mini-icon {
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #00d4ff;
-        box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
-        background: #111827;
-        display: block;
-        margin: 0 auto 6px auto;
+    .tier-b {
+        background: rgba(255, 196, 0, 0.16);
+        padding: 12px;
+        border-radius: 14px;
+        margin-top: 12px;
     }
 
-    .missing-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #9fb3c8;
-        font-weight: bold;
+    .tier-c {
+        background: rgba(255, 136, 0, 0.16);
+        padding: 12px;
+        border-radius: 14px;
+        margin-top: 12px;
     }
 
-    .icon-name {
-        font-size: 12px;
-        color: #d9e4ef;
-        line-height: 1.1;
+    .tier-d {
+        background: rgba(255, 74, 74, 0.16);
+        padding: 12px;
+        border-radius: 14px;
+        margin-top: 12px;
     }
 
-    .tier-section {
-        margin-bottom: 18px;
-        padding: 14px;
-        border-radius: 16px;
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
     }
 
-    .tier-s { background: rgba(45, 180, 80, 0.18); border: 1px solid rgba(45, 180, 80, 0.45); }
-    .tier-a { background: rgba(123, 201, 67, 0.18); border: 1px solid rgba(123, 201, 67, 0.45); }
-    .tier-b { background: rgba(255, 196, 0, 0.16); border: 1px solid rgba(255, 196, 0, 0.38); }
-    .tier-c { background: rgba(255, 136, 0, 0.16); border: 1px solid rgba(255, 136, 0, 0.38); }
-    .tier-d { background: rgba(255, 74, 74, 0.16); border: 1px solid rgba(255, 74, 74, 0.38); }
-
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
     .stTabs [data-baseweb="tab"] {
         background-color: rgba(20, 30, 46, 0.92);
         border-radius: 12px 12px 0 0;
@@ -425,7 +412,7 @@ tabs = st.tabs(["Overview", "Details", "Comparison", "Tier Lists", "Team Comps"]
 with tabs[0]:
     st.markdown("## How To Use")
     st.write("Use the sidebar filters to narrow the roster. Then browse characters in Details, compare two heroes in Comparison, build custom rankings in Tier Lists, and save six-character squads in Team Comps.")
-    st.write("Tier lists and team comps save to local JSON files and can be loaded again later.")
+    st.write("Saved tier lists and team comps now appear in their dropdowns immediately after saving.")
 
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -508,7 +495,7 @@ with tabs[2]:
 
 with tabs[3]:
     st.markdown("## Tier Lists")
-    st.write("Build a tier list, save it, and load it later. Saved lists now appear in the dropdown immediately after saving.")
+    st.write("Assign characters into S through D ranks, then save or load different tier list categories.")
 
     tier_prefix = st.text_input(
         "Tier list title",
@@ -555,24 +542,24 @@ with tabs[3]:
         st.session_state.current_tierlist_data = current_tierlist
         st.rerun()
 
-    st.markdown("<div class='tier-section tier-s'><h3>S Rank</h3></div>", unsafe_allow_html=True)
-    render_character_icon_row(current_tierlist["S"], size=58)
+    st.markdown("<div class='tier-s'><h3>S Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["S"], size=72)
 
-    st.markdown("<div class='tier-section tier-a'><h3>A Rank</h3></div>", unsafe_allow_html=True)
-    render_character_icon_row(current_tierlist["A"], size=58)
+    st.markdown("<div class='tier-a'><h3>A Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["A"], size=72)
 
-    st.markdown("<div class='tier-section tier-b'><h3>B Rank</h3></div>", unsafe_allow_html=True)
-    render_character_icon_row(current_tierlist["B"], size=58)
+    st.markdown("<div class='tier-b'><h3>B Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["B"], size=72)
 
-    st.markdown("<div class='tier-section tier-c'><h3>C Rank</h3></div>", unsafe_allow_html=True)
-    render_character_icon_row(current_tierlist["C"], size=58)
+    st.markdown("<div class='tier-c'><h3>C Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["C"], size=72)
 
-    st.markdown("<div class='tier-section tier-d'><h3>D Rank</h3></div>", unsafe_allow_html=True)
-    render_character_icon_row(current_tierlist["D"], size=58)
+    st.markdown("<div class='tier-d'><h3>D Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["D"], size=72)
 
 with tabs[4]:
     st.markdown("## Team Comps")
-    st.write("Build a team of 6, save it, and load it later. Saved comps now appear in the dropdown immediately after saving.")
+    st.write("Choose 6 characters, then save or load named team compositions.")
 
     team_name = st.text_input("Team comp name", value=st.session_state.current_team_name)
     st.session_state.current_team_name = team_name.strip() or "My Team Comp"
@@ -626,4 +613,4 @@ with tabs[4]:
     st.session_state.current_team_data = current_team
 
     st.markdown("### Current Team Preview")
-    render_character_icon_row([name for name in current_team if name], size=64)
+    render_character_icon_row([name for name in current_team if name], size=78)
