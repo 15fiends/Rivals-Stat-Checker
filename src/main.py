@@ -343,6 +343,7 @@ st.markdown("""
         font-size: 18px;
         line-height: 1.4;
         margin-top: 12px;
+        font-family: 'Rajdhani', sans-serif;
     }
 
     .metric-card {
@@ -393,6 +394,52 @@ st.markdown("""
         font-size: 28px;
         font-weight: 700;
         color: white;
+    }
+
+    .detail-label {
+        font-family: 'Orbitron', sans-serif;
+        color: #9edfff;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .lore-card {
+        background: linear-gradient(135deg, rgba(14, 22, 36, 0.95), rgba(25, 37, 58, 0.94));
+        border: 1px solid rgba(0, 212, 255, 0.18);
+        border-radius: 18px;
+        padding: 18px 20px;
+        margin: 14px 0 16px;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    .lore-text {
+        font-family: 'Rajdhani', sans-serif;
+        color: #dce7f4;
+        font-size: 20px;
+        line-height: 1.55;
+        letter-spacing: 0.2px;
+        margin: 0;
+    }
+
+    .detail-stat {
+        margin-top: 14px;
+    }
+
+    .detail-stat-value {
+        font-family: 'Rajdhani', sans-serif;
+        color: #f4f7fb;
+        font-size: 24px;
+        line-height: 1.25;
+        margin: 0;
+    }
+
+    .detail-note {
+        font-family: 'Rajdhani', sans-serif;
+        color: #b8c8dc;
+        font-size: 16px;
+        line-height: 1.45;
     }
 
     .tier-s {
@@ -639,8 +686,17 @@ with tabs[1]:
 
         character_info = filtered_df[filtered_df["name"] == selected_character].iloc[0]
 
-        st.markdown(f"**Real Name:** {character_info['real_name']}")
-        st.write(character_info["overview"])
+        st.markdown(
+            f"""
+            <div class="detail-label">Real Name</div>
+            <p class="lore-text" style="margin-bottom: 12px;">{character_info['real_name']}</p>
+            <div class="lore-card">
+                <div class="detail-label">Character Lore</div>
+                <p class="lore-text">{character_info["overview"]}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         left_col, right_col = st.columns(2)
 
@@ -649,8 +705,19 @@ with tabs[1]:
                 f"<div class='role-pill {role_class(character_info['role'])}'>{character_info['role']}</div>",
                 unsafe_allow_html=True
             )
-            st.write(f"Range Type: {character_info['range_type']}")
-            st.write(f"Health: {character_info['health']}")
+            st.markdown(
+                f"""
+                <div class="detail-stat">
+                    <div class="detail-label">Range Type</div>
+                    <p class="detail-stat-value">{character_info['range_type']}</p>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-label">Health</div>
+                    <p class="detail-stat-value">{character_info['health']}</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
         with right_col:
             health_min = full_df["health"].min()
@@ -709,7 +776,14 @@ with tabs[1]:
                 showlegend=False,
             )
 
-            st.caption("Health is normalized into a 1-5 rating here so it can be compared fairly with mobility, damage, and difficulty.")
+            st.markdown(
+                """
+                <p class="detail-note">
+                    Health is normalized into a 1-5 rating here so it can be compared fairly with mobility, damage, and difficulty.
+                </p>
+                """,
+                unsafe_allow_html=True
+            )
             st.plotly_chart(fig, use_container_width=True, theme=None)
 
 with tabs[2]:
