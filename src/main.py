@@ -98,13 +98,34 @@ def role_class(role_name: str) -> str:
     return role_name.lower().replace(" ", "-")
 
 
+def get_role_color(role_name: str) -> str:
+    if role_name == "Duelist":
+        return "#ff4a4a"
+    if role_name == "Strategist":
+        return "#35c759"
+    if role_name == "Vanguard":
+        return "#3b82f6"
+    return "#00d4ff"
+
+
 def show_character_header(character_name: str) -> None:
+    character_row = full_df[full_df["name"] == character_name].iloc[0]
+    role_color = get_role_color(character_row["role"])
     image_uri = get_image_data_uri(get_image_path(character_name))
+
     if image_uri:
         st.markdown(
             f"""
-            <div class="profile-wrap">
-                <img src="{image_uri}" class="profile-image">
+            <div style="display:flex; align-items:center; gap:16px; margin-bottom:12px;">
+                <img src="{image_uri}" style="
+                    width:110px;
+                    height:110px;
+                    border-radius:50%;
+                    object-fit:cover;
+                    border:3px solid {role_color};
+                    box-shadow:0 0 18px {role_color};
+                    background-color:#111827;
+                ">
                 <div class="profile-name">{character_name}</div>
             </div>
             """,
@@ -120,6 +141,7 @@ def render_character_icon_row(character_names: list[str], size: int = 80) -> Non
         return
 
     cols_per_row = 6
+
     for start in range(0, len(character_names), cols_per_row):
         row_names = character_names[start:start + cols_per_row]
         cols = st.columns(cols_per_row)
@@ -128,10 +150,27 @@ def render_character_icon_row(character_names: list[str], size: int = 80) -> Non
             if col_index < len(row_names):
                 name = row_names[col_index]
                 image_path = get_image_path(name)
+                character_row = full_df[full_df["name"] == name].iloc[0]
+                role_color = get_role_color(character_row["role"])
 
                 with col:
                     if os.path.exists(image_path):
-                        st.image(image_path, width=size)
+                        st.markdown(
+                            f"""
+                            <div style="text-align:center;">
+                                <img src="{get_image_data_uri(image_path)}" style="
+                                    width:{size}px;
+                                    height:{size}px;
+                                    border-radius:50%;
+                                    object-fit:cover;
+                                    border:3px solid {role_color};
+                                    box-shadow:0 0 12px {role_color};
+                                    background-color:#111827;
+                                ">
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
                     else:
                         st.write("No image")
                     st.caption(name)
@@ -225,23 +264,6 @@ st.markdown("""
         background: rgba(182, 107, 255, 0.14);
         color: #dfb6ff;
         border: 1px solid rgba(182, 107, 255, 0.4);
-    }
-
-    .profile-wrap {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 12px;
-    }
-
-    .profile-image {
-        width: 110px;
-        height: 110px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #00d4ff;
-        box-shadow: 0 0 18px rgba(0, 212, 255, 0.35);
-        background-color: #111827;
     }
 
     .profile-name {
