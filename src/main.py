@@ -8,6 +8,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Rivals Stat Checker", layout="wide")
 
+# This keeps asset paths stable no matter whether the app is run from src/ or dist/.
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -22,6 +23,7 @@ TIERLISTS_PATH = get_data_path("tierlists.json")
 TEAM_COMPS_PATH = get_data_path("team_comps.json")
 
 
+# Make sure the local save files exist before the UI tries to read from them.
 def ensure_data_files() -> None:
     os.makedirs(DATA_PATH, exist_ok=True)
     os.makedirs(IMAGES_PATH, exist_ok=True)
@@ -45,6 +47,7 @@ def save_json(path: str, data: dict) -> None:
         json.dump(data, file, indent=2)
 
 
+# These small flash messages survive reruns so save actions still feel visible.
 def set_flash_message(message: str, message_type: str = "success") -> None:
     st.session_state.flash_message = {
         "text": message,
@@ -71,6 +74,7 @@ def get_image_filename(character_name: str) -> str:
     )
 
 
+# Some image files were named a little differently, so we try both patterns here.
 def get_image_path(character_name: str) -> str:
     filename_candidates = [
         get_image_filename(character_name),
@@ -92,6 +96,7 @@ def get_image_path(character_name: str) -> str:
     return os.path.join(IMAGES_PATH, filename_candidates[0])
 
 
+# A few of the art files are actually WebP under a .png name, so we sniff the real type.
 def get_image_mime_type(image_path: str) -> str:
     with open(image_path, "rb") as image_file:
         header = image_file.read(12)
@@ -118,6 +123,7 @@ def get_image_data_uri(image_path: str) -> str | None:
     return f"data:{mime_type};base64,{encoded}"
 
 
+# Tier list helpers keep the saved data predictable even after edits or reloads.
 def empty_tierlist() -> dict[str, list[str]]:
     return {"S": [], "A": [], "B": [], "C": [], "D": []}
 
@@ -140,6 +146,7 @@ def assign_character_to_tier(tierlist: dict[str, list[str]], character_name: str
     tierlist[tier_name].append(character_name)
 
 
+# Team comps are always six slots, so these helpers normalize the saved shape.
 def empty_team_comp() -> list[str]:
     return ["", "", "", "", "", ""]
 
@@ -155,6 +162,7 @@ def role_class(role_name: str) -> str:
     return role_name.lower().replace(" ", "-")
 
 
+# These role colors drive the glows, chart lines, card borders, and filter accents.
 def get_role_color(role_name: str) -> str:
     if role_name == "Duelist":
         return "#ff4a4a"
@@ -179,6 +187,7 @@ def get_role_fill_color(role_name: str) -> str:
     return "rgba(0, 212, 255, 0.22)"
 
 
+# This is the shared profile header used in details and comparison views.
 def show_character_header(character_name: str) -> None:
     character_row = full_df[full_df["name"] == character_name].iloc[0]
     role_color = get_role_color(character_row["role"])
@@ -206,6 +215,7 @@ def show_character_header(character_name: str) -> None:
         st.subheader(character_name)
 
 
+# Used for tier list rows and team comp previews.
 def render_character_icon_row(character_names: list[str], size: int = 80) -> None:
     if not character_names:
         st.info("No characters assigned yet.")
@@ -247,6 +257,7 @@ def render_character_icon_row(character_names: list[str], size: int = 80) -> Non
                     st.caption(name)
 
 
+# Overview cards use this to highlight the strongest characters for the chosen stat.
 def render_top_character_cards(dataframe: pd.DataFrame, stat_name: str, top_n: int = 6) -> None:
     if dataframe.empty:
         st.info("No characters match your current filters.")
@@ -326,6 +337,7 @@ def render_top_character_cards(dataframe: pd.DataFrame, stat_name: str, top_n: i
 
 ensure_data_files()
 
+# Global styling lives here so both src/ and dist/ keep the exact same look.
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -370,6 +382,35 @@ st.markdown("""
         line-height: 1.4;
         margin-top: 12px;
         font-family: 'Rajdhani', sans-serif;
+    }
+
+    .top-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .top-bar a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #f4f7fb;
+        text-decoration: none;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .top-bar a:hover {
+        color: #ffd24a;
+    }
+
+    .top-bar svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
     }
 
     .metric-card {
@@ -531,10 +572,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# This is the main roster dataset the rest of the app reads from.
 data = [
     {"name": "Adam Warlock", "role": "Strategist", "health": 250, "mobility": 2, "damage": 3, "difficulty": 4, "range_type": "Ranged"},
     {"name": "Angela", "role": "Vanguard", "health": 550, "mobility": 4, "damage": 4, "difficulty": 3, "range_type": "Melee"},
     {"name": "Black Panther", "role": "Duelist", "health": 275, "mobility": 5, "damage": 4, "difficulty": 4, "range_type": "Melee"},
+    {"name": "Black Cat", "role": "Duelist", "health": 275, "mobility": 5, "damage": 4, "difficulty": 5, "range_type": "Melee"},
     {"name": "Black Widow", "role": "Duelist", "health": 250, "mobility": 3, "damage": 5, "difficulty": 3, "range_type": "Ranged"},
     {"name": "Blade", "role": "Duelist", "health": 350, "mobility": 4, "damage": 5, "difficulty": 4, "range_type": "Melee"},
     {"name": "Captain America", "role": "Vanguard", "health": 575, "mobility": 3, "damage": 3, "difficulty": 3, "range_type": "Melee"},
@@ -582,10 +625,12 @@ data = [
     {"name": "Wolverine", "role": "Duelist", "health": 350, "mobility": 4, "damage": 5, "difficulty": 4, "range_type": "Melee"},
 ]
 
+# Extra flavor text and real names for the character details section.
 character_lore = {
     "Adam Warlock": {"real_name": "Adam Warlock", "overview": "The genetically-engineered Adam Warlock wields mighty Quantum Magic, allowing him to connect and heal souls with a gentle touch. When the time comes for his allies to unite, Warlock emerges as the unwavering epicenter of cosmic justice!"},
     "Angela": {"real_name": "Aldrif Odinsdottir", "overview": "As the Hand of Heven, the warrior called Angela embodies unwavering courage and determination. Able to manipulate Ichors into various weapons and unfurl her wings to soar across the battlefield, she is ready to deliver divine judgment upon her foes!"},
     "Black Panther": {"real_name": "T'Challa", "overview": "T'Challa, King of Wakanda, wields the perfect blend of the cutting-edge Vibranium technology and ancestral power drawn from the Panther God, Bast. The Black Panther bides his time until elegantly infiltrating enemy lines and commencing his hunt."},
+    "Black Cat": {"real_name": "Felicia Hardy", "overview": "One of the world's premiere thieves, Felicia Hardy glides across the battlefield with swift precision and a dancer's grace, ever ready to purloin an opponent's fortune. Those who meet the Black Cat's gaze should beware, as her omens never miss their mark!"},
     "Black Widow": {"real_name": "Natasha Romanova", "overview": "Natasha Romanova is the world's most elite spy in any era. Her mastery of the sniper rifle eliminates targets from afar, while her shock batons neutralize close-range threats. Black Widow is locked, loaded, and ready to deliver a fatal bite!"},
     "Blade": {"real_name": "Eric Brooks", "overview": "Half-human and half-vampire, Eric Brooks walks between worlds, craving the very life force of his enemies. As night falls, Blade's hunt begins as he wields the Sword of Dracula to become the nightmare of any foe who dares to bare their fangs."},
     "Captain America": {"real_name": "Steven “Steve” Rogers", "overview": "Enhanced by the Super-Soldier Serum, Steven 'Steve' Rogers uses his Vibranium shield and extensive combat training to confront any threat to justice. When Captain America rallies his troops, a wave of courage sweeps across the battlefield!"},
@@ -633,6 +678,7 @@ character_lore = {
     "Wolverine": {"real_name": "Logan", "overview": "Thanks to his regenerative healing factor and berserker rage, the centuries-old Logan can fight through the worst pain to go claw-to-claw with any foe. The Wolverine stands ready to shred through all obstacles in his way with his Adamantium claws."},
 }
 
+# Build one master dataframe once, then filter it down based on sidebar choices later.
 full_df = pd.DataFrame(data)
 full_df["real_name"] = full_df["name"].map(lambda name: character_lore.get(name, {}).get("real_name", "Unknown"))
 full_df["overview"] = full_df["name"].map(lambda name: character_lore.get(name, {}).get("overview", "No overview added yet."))
@@ -647,11 +693,28 @@ if "current_team_name" not in st.session_state:
 if "current_team_data" not in st.session_state:
     st.session_state.current_team_data = empty_team_comp()
 
+# These stores back the saved tier lists and team comps on disk.
 tierlists_store = load_json(TIERLISTS_PATH)
 team_comps_store = load_json(TEAM_COMPS_PATH)
 
 logo_path = os.path.join(IMAGES_PATH, "marvel_rivals_logo.png")
 
+# Simple creator credit bar above the main hero section.
+st.markdown(
+    """
+    <div class="top-bar">
+        <a href="https://www.instagram.com/nvrrich/" target="_blank">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5a4.25 4.25 0 0 0 4.25 4.25h8.5a4.25 4.25 0 0 0 4.25-4.25v-8.5a4.25 4.25 0 0 0-4.25-4.25h-8.5Zm8.88 1.12a1.13 1.13 0 1 1 0 2.26 1.13 1.13 0 0 1 0-2.26ZM12 6.5A5.5 5.5 0 1 1 6.5 12 5.5 5.5 0 0 1 12 6.5Zm0 1.5A4 4 0 1 0 16 12a4 4 0 0 0-4-4Z"/>
+            </svg>
+            <span>@nvrrich</span>
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# Main hero/header area at the top of the app.
 st.markdown("<div class='hero-box'>", unsafe_allow_html=True)
 if os.path.exists(logo_path):
     col1, col2 = st.columns([1.2, 1])
@@ -666,6 +729,7 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 filtered_df = full_df.copy()
 
+# Sidebar filters control what shows up across almost the whole app.
 st.sidebar.header("Filters")
 role_filter = st.sidebar.selectbox("Role", ["All"] + sorted(full_df["role"].unique().tolist()))
 search_text = st.sidebar.text_input("Search roster by name")
@@ -686,6 +750,7 @@ filtered_df = filtered_df[filtered_df["mobility"] >= min_mobility]
 filtered_df = filtered_df[filtered_df["difficulty"] <= max_difficulty]
 filtered_character_names = filtered_df["name"].tolist()
 
+# The sidebar colors shift with the selected role using CSS only, so it stays lightweight.
 slider_color = "#00d4ff"
 slider_glow = "rgba(0, 212, 255, 0.35)"
 if role_filter == "Duelist":
@@ -734,8 +799,10 @@ st.markdown(
 
 show_flash_message()
 
+# Main app navigation.
 tabs = st.tabs(["Overview", "Details", "Comparison", "Tier Lists", "Team Comps"])
 
+# Overview gives the quick summary and top picks based on the active filters.
 with tabs[0]:
     st.markdown("## How To Use")
     st.write("Use the sidebar filters to narrow the roster. Then browse characters in Details, compare two heroes in Comparison, build custom rankings in Tier Lists, and save six-character squads in Team Comps.")
@@ -768,6 +835,7 @@ with tabs[0]:
     )
     render_top_character_cards(filtered_df, top_stat, top_n=6)
 
+# Details is the single-character deep dive section.
 with tabs[1]:
     st.markdown("## Character Details")
 
@@ -879,6 +947,7 @@ with tabs[1]:
             )
             st.plotly_chart(fig, use_container_width=True, theme=None)
 
+# Comparison uses the same filtered roster, but overlays two characters on one radar chart.
 with tabs[2]:
     st.markdown("## Character Comparison")
 
@@ -975,6 +1044,7 @@ with tabs[2]:
         )
         st.plotly_chart(comparison_fig, use_container_width=True, theme=None)
 
+# Tier lists let the user sort characters into ranks and save multiple list names.
 with tabs[3]:
     st.markdown("## Tier Lists")
     st.write("Assign characters into S through D ranks, then save or load different tier list categories.")
@@ -1042,6 +1112,7 @@ with tabs[3]:
     st.markdown("<div class='tier-d'><h3>D Rank</h3></div>", unsafe_allow_html=True)
     render_character_icon_row(current_tierlist["D"], size=72)
 
+# Team comps work the same way, but with six character slots instead of rank buckets.
 with tabs[4]:
     st.markdown("## Team Comps")
     st.write("Choose 6 characters, then save or load named team compositions.")
