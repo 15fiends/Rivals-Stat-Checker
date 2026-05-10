@@ -3,6 +3,7 @@ import json
 import os
 
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
 st.set_page_config(page_title="Rivals Stat Checker", layout="wide")
@@ -106,6 +107,16 @@ def get_role_color(role_name: str) -> str:
     if role_name == "Vanguard":
         return "#3b82f6"
     return "#00d4ff"
+
+
+def get_role_fill_color(role_name: str) -> str:
+    if role_name == "Duelist":
+        return "rgba(255, 74, 74, 0.22)"
+    if role_name == "Strategist":
+        return "rgba(53, 199, 89, 0.22)"
+    if role_name == "Vanguard":
+        return "rgba(59, 130, 246, 0.22)"
+    return "rgba(0, 212, 255, 0.22)"
 
 
 def show_character_header(character_name: str) -> None:
@@ -456,198 +467,54 @@ data = [
 ]
 
 character_lore = {
-    "Adam Warlock": {
-        "real_name": "Adam Warlock",
-        "overview": "The genetically-engineered Adam Warlock wields mighty Quantum Magic, allowing him to connect and heal souls with a gentle touch. When the time comes for his allies to unite, Warlock emerges as the unwavering epicenter of cosmic justice!"
-    },
-    "Angela": {
-        "real_name": "Aldrif Odinsdottir",
-        "overview": "As the Hand of Heven, the warrior called Angela embodies unwavering courage and determination. Able to manipulate Ichors into various weapons and unfurl her wings to soar across the battlefield, she is ready to deliver divine judgment upon her foes!"
-    },
-    "Black Panther": {
-        "real_name": "T'Challa",
-        "overview": "T'Challa, King of Wakanda, wields the perfect blend of the cutting-edge Vibranium technology and ancestral power drawn from the Panther God, Bast. The Black Panther bides his time until elegantly infiltrating enemy lines and commencing his hunt."
-    },
-    "Black Widow": {
-        "real_name": "Natasha Romanova",
-        "overview": "Natasha Romanova is the world's most elite spy in any era. Her mastery of the sniper rifle eliminates targets from afar, while her shock batons neutralize close-range threats. Black Widow is locked, loaded, and ready to deliver a fatal bite!"
-    },
-    "Blade": {
-        "real_name": "Eric Brooks",
-        "overview": "Half-human and half-vampire, Eric Brooks walks between worlds, craving the very life force of his enemies. As night falls, Blade's hunt begins as he wields the Sword of Dracula to become the nightmare of any foe who dares to bare their fangs."
-    },
-    "Captain America": {
-        "real_name": "Steven “Steve” Rogers",
-        "overview": "Enhanced by the Super-Soldier Serum, Steven 'Steve' Rogers uses his Vibranium shield and extensive combat training to confront any threat to justice. When Captain America rallies his troops, a wave of courage sweeps across the battlefield!"
-    },
-    "Cloak & Dagger": {
-        "real_name": "Tyrone Johnson and Tandy Bowen",
-        "overview": "Tyrone Johnson and Tandy Bowen are nearly inseparable, like two sides of the same coin. Intertwined by forces of shadow and light, Cloak & Dagger fight as a united front, dealing havoc and healing allies across the arena."
-    },
-    "Daredevil": {
-        "real_name": "Matt Murdock",
-        "overview": "A tragic accident transformed Matt Murdock, blinding him, but awakening his incredible Radar Sense. When darkness falls, Daredevil wields his billy clubs in place of a gavel, doling out justice and purging the world of evil!"
-    },
-    "Deadpool": {
-        "real_name": "Wade Wilson",
-        "overview": "Wade Wilson is the full package, with devastating damage output, an impenetrable shield, and swift healing. There's no limit to what Deadpool can achieve, as long as he keeps his moves flashy! And, of course, every epic attack comes with an endless barrage of witty banter!"
-    },
-    "Doctor Strange": {
-        "real_name": "Stephen Strange",
-        "overview": "As the Sorcerer Supreme, Doctor Stephen Strange gracefully wields ancient spells to turn the tide of even the most impossible battle. However, magic always comes at a cost, and each use of his arcane abilities gradually awakens the darkness within him."
-    },
-    "Elsa Bloodstone": {
-        "real_name": "Elsa Bloodstone",
-        "overview": "Born into a line of legendary monster hunters, Elsa Bloodstone boasts incredible physical prowess and an innate talent for subduing the creepiest of creatures. The instinct to hunt is in her blood, and every foe she faces inevitably becomes prey ensnared in her traps!"
-    },
-    "Emma Frost": {
-        "real_name": "Emma Frost",
-        "overview": "For Emma Frost, war is the purest form of art. With her formidable telepathic abilities, she intricately weaves a deadly mental web that ensnares her foes, while her indestructible diamond form lets her lead her teammates fearlessly into the fray. Forever elegant and composed, Emma reigns as the one true queen of the battlefield!"
-    },
-    "Gambit": {
-        "real_name": "Remy LeBeau",
-        "overview": "Charming and free-spirited, Remy LeBeau manipulates kinetic energy with unmatched skill. With a flick of his wrist, his charged playing cards become explosive projectiles for foes or heal his allies through kinetic shifting. When the charismatic Gambit lights up the battlefield, he always plays to win!"
-    },
-    "Groot": {
-        "real_name": "Groot",
-        "overview": "A flora colossus from Planet X, the alien known as Groot exhibits enhanced vitality and the ability to manipulate all forms of vegetation. As sturdy as a towering tree, Groot forges his own way, serving as the team's silent but reliable pathfinder."
-    },
-    "Hawkeye": {
-        "real_name": "Clint Barton",
-        "overview": "Despite his lack of superpowers, Hawkeye's unparalleled skills as a marksman have earned him a spot alongside earth's mightiest heroes. With a cool head and steady hand, Clint Barton never misses a target… so enemies best stay out of his sights!"
-    },
-    "Hela": {
-        "real_name": "Hela",
-        "overview": "As the Goddess of Death, Hela wields supreme control over the fallen souls residing in Hel. With a haunting whisper and a murder of crows, the queen of the underworld gracefully reaps the souls of her enemies without an ounce of mercy."
-    },
-    "Hulk": {
-        "real_name": "Bruce Banner",
-        "overview": "Brilliant scientist Dr. Bruce Banner has finally found a way to coexist with his monstrous alter ego, the Hulk. By accumulating gamma energy over multiple transformations, he can become a wise and strong Hero Hulk or a fierce and destructive Monster Hulk – a true force of fury on the battlefield!"
-    },
-    "Human Torch": {
-        "real_name": "Johnny Storm",
-        "overview": "The Fantastic Four's resident heartthrob, Johnny Storm, adds an intense flare to every battle he fights. Shrouded in roaring flames, the Human Torch always manages to look cool while turning up the heat!"
-    },
-    "Invisible Woman": {
-        "real_name": "Susan Storm",
-        "overview": "The Invisible Woman is able to slip in and out of sight without a trace. No matter how intense the battle may be, Susan Richards always keeps her cool, conjuring up impenetrable force fields to protect herself and her team."
-    },
-    "Iron Fist": {
-        "real_name": "Lin Lie",
-        "overview": "Lin Lie is a master of Chinese martial arts who once wielded the shattered Sword of Fu Xi. After fusing its pieces with the mighty Chi of Shou-Lao, he is poised to strike his foes with the grace and force of a soaring dragon as the latest immortal Iron Fist."
-    },
-    "Iron Man": {
-        "real_name": "Anthony \"Tony\" Stark",
-        "overview": "Armed with superior intellect and a nanotech battlesuit of his own design, Tony Stark stands alongside gods as the Invincible Iron Man. His state of the art armor turns any battlefield into his personal playground, allowing him to steal the spotlight he so desperately desires."
-    },
-    "Jeff The Land Shark": {
-        "real_name": "Jeff",
-        "overview": "Most landsharks are vicious creatures of the deep... but not Jeff! This adorable and mischievous little landshark brings splashes of joy and healing to every battle. But if the tide turns, Jeff can morph into a voracious beast, swallowing an army of foes in one giant gulp!"
-    },
-    "Loki": {
-        "real_name": "Loki Laufeyson",
-        "overview": "What greater thrill is there for a God of Mischief than to outsmart his foes? The cunning trickster Loki uses his illusions and shapeshifting abilities to weave in and out of combat, toying with enemies at every turn."
-    },
-    "Luna Snow": {
-        "real_name": "Seol Hee",
-        "overview": "Equal parts pop star and Super Hero, Luna Snow puts on a dazzling show with both her light and dark ice powers. The arena is her stage, where Seol Hee and her team orchestrate spectacular displays that earn her an ever-increasing number of fans and wins."
-    },
-    "Magik": {
-        "real_name": "Illyana Rasputin",
-        "overview": "Trained in the dark arts and wielding her mighty Soulsword, Magik leaps through portals to navigate the arena with ease. Once Illyana transforms into the demonic Darkchild, all who dare stand against her will fall before her merciless blade."
-    },
-    "Magneto": {
-        "real_name": "Max Eisenhardt",
-        "overview": "The Master of Magnetism bends even the strongest metal to his whims, shielding his allies and striking at his foes. Whether he calls himself Max Eisenhardt, Erik Lehnsherr, or simply Magneto, the hardships this warrior has endured have made him as unbreakable as the steel he brandishes."
-    },
-    "Mantis": {
-        "real_name": "Mantis",
-        "overview": "Mantis uses her impressive mental abilities and her penchant for plant control to anchor any team she fights alongside. Her powers tap into a limitless flow of life energy, gently nourishing everything she touches."
-    },
-    "Mister Fantastic": {
-        "real_name": "Reed Richards",
-        "overview": "Reed Richards believes that true strength comes from remaining flexible, both mentally and physically. Mister Fantastic's elastic body, which can twist and stretch into any form with ease, is almost as impressive as his brilliant mind."
-    },
-    "Moon Knight": {
-        "real_name": "Marc Spector",
-        "overview": "As the avatar of the Egyptian God of Vengeance, Marc Spector's body has been enhanced by Khonshu himself. Bathed in a luminous aura that pierces the darkness, Moon Knight glides through the night, ready to sear his enemies with his master's sacred Ankhs."
-    },
-    "Namor": {
-        "real_name": "Namor McKenzie",
-        "overview": "The unrivaled King of the Seas, Namor surfs into battle on a mighty wave with an army of fierce aquatic creatures in his wake. When ancient horns of war blare, devastation soon follows as deadly waters engulf the arena."
-    },
-    "Peni Parker": {
-        "real_name": "Peni Parker",
-        "overview": "Peni Parker may be young, but she bravely stands on the frontlines to protect the Web of Life and Destiny. Together, this teen prodigy and her state-of-the-art mech, the sensational SP//dr, make for the most thrilling duo on the battlefield!"
-    },
-    "Phoenix": {
-        "real_name": "Jean Grey",
-        "overview": "Original X-Man Jean Grey boasted immense psychic power even before becoming host the unbridled Phoenix Force, embodiment of life and psionic energy across the universe. Now aligned with this ancient cosmic power, Jean and the Phoenix traverse space together, burning bright as both a spark of creation and inferno of destruction!"
-    },
-    "Psylocke": {
-        "real_name": "Sai",
-        "overview": "The psychic warrior known as Sai has the Mutant ability to conjure a variety of weapons with the power of her mind. Gracefully gliding across the battlefield, this trained ninja can shatter the enemy's defenses with a single thought."
-    },
-    "Rocket Raccoon": {
-        "real_name": "Rocket Raccoon",
-        "overview": "Rocket may not look like a tech genius or an expert tactician, but anyone who's ever made his hit list has quickly regretted underestimating him. This savvy space soldier is equally eager to boost his teammates and to collect bounties on his foes."
-    },
-    "Rogue": {
-        "real_name": "Anna Marie",
-        "overview": "Anna Marie possesses the Mutant ability to absorb the powers of others with a touch. Her ever-adaptable arsenal of superhuman abilities helps turn the tide of any fight. After touching Raw Chronovium, Rogue's strength soared to new heights, allowing her to overwhelm enemies with unstoppable force!"
-    },
-    "Scarlet Witch": {
-        "real_name": "Wanda Maximoff",
-        "overview": "Wanda Maximoff is adept at harnessing formidable chaos magic, casting hexes with the power to twist and reshape reality itself. Energy, space, and matter are mere playthings in the hands of Scarlet Witch!"
-    },
-    "Spider-Man": {
-        "real_name": "Peter Parker",
-        "overview": "Swinging around the arena on his signature weblines, your friendly neighborhood Spider-Man, AKA Peter Parker, catches his rivals by surprise with sneaky, sticky bursts of webbing and unexpected attacks from above. Look out… here comes the Spider-Man!"
-    },
-    "Squirrel Girl": {
-        "real_name": "Doreen Green",
-        "overview": "Possessing only the powers of a common squirrel, somehow Doreen Green manages to defeat seemingly invincible enemies in the most unexpected ways. Any foe who counts her out is bound to fall at the hands of the Unbeatable Squirrel Girl!"
-    },
-    "Star-Lord": {
-        "real_name": "Peter Quill",
-        "overview": "Peter Quill lives to dazzle his foes on the battlefield with his signature swagger. As his element guns paint arcs of devastation, his acrobatic moves sail through the sky with unrivaled style. With performances this spectacular, it's no wonder that Star-Lord is so legendary!"
-    },
-    "Storm": {
-        "real_name": "Ororo Munroe",
-        "overview": "An Omega-level Mutant ability to manipulate weather patterns makes Ororo Munroe a force to be reckoned with. Rain or shine, thunder or lightning, nature itself bends to the command of the Goddess of the Storm!"
-    },
-    "The Punisher": {
-        "real_name": "Frank Castle",
-        "overview": "Expertly wielding a full arsenal of futuristic weapons, Frank Castle is a formidable one-man army. With a steadfast resolve to deliver justice to his enemies, The Punisher won't cease in his mission until every last round is fired!"
-    },
-    "The Thing": {
-        "real_name": "Ben Grimm",
-        "overview": "Benjamin J. Grimm is unquestionably the rock star of any team he's on. Always at the forefront of the fight, the Thing shields his allies with his unbreakable form, selflessly fending off any harm that comes their way."
-    },
-    "Thor": {
-        "real_name": "Thor Odinson",
-        "overview": "The son of Odin taps into his divine power to call forth thunder and lightning, raining down relentless fury upon his enemies. With his mighty hammer Mjolnir in hand, Thor effortlessly asserts his dominance on the field of combat."
-    },
-    "Ultron": {
-        "real_name": "Ultron",
-        "overview": "The Pinnacle of artificial lifeforms, Ultron is programmed to learn and adapt in ways beyond human capability. He can summon an army of automated drones that obey his every command, raising his chances of victory exponentially."
-    },
-    "Venom": {
-        "real_name": "Edward \"Eddie\" Brock",
-        "overview": "Using his symbiote-enhanced body as the perfect living weapon, Eddie Brock and his alien ally stand ever-ready to unleash vicious attacks upon anyone he deems an enemy. Those ensnared by Venom's tentacles have no choice but to surrender to this insatiable predator."
-    },
-    "White Fox": {
-        "real_name": "Ami Han",
-        "overview": "Ami Han, the last of the legendary Kumiho, can summon her ancestral Nine-Tailed Power to fortify herself and heal her allies on the battlefield. As the calm and capable Director of Tiger Division, she is any team's unwavering backbone, no matter the foe."
-    },
-    "Winter Soldier": {
-        "real_name": "James Buchanan \"Bucky\" Barnes",
-        "overview": "Terrifying experiments turned him into a brainwashed assassin, but now James Buchanan 'Bucky' Barnes is in control of his own fate once again. With his enhanced mechanical arm, the Winter Soldier is primed to deliver earth-shattering blows to any foe in his path!"
-    },
-    "Wolverine": {
-        "real_name": "Logan",
-        "overview": "Thanks to his regenerative healing factor and berserker rage, the centuries-old Logan can fight through the worst pain to go claw-to-claw with any foe. The Wolverine stands ready to shred through all obstacles in his way with his Adamantium claws."
-    },
+    "Adam Warlock": {"real_name": "Adam Warlock", "overview": "The genetically-engineered Adam Warlock wields mighty Quantum Magic, allowing him to connect and heal souls with a gentle touch. When the time comes for his allies to unite, Warlock emerges as the unwavering epicenter of cosmic justice!"},
+    "Angela": {"real_name": "Aldrif Odinsdottir", "overview": "As the Hand of Heven, the warrior called Angela embodies unwavering courage and determination. Able to manipulate Ichors into various weapons and unfurl her wings to soar across the battlefield, she is ready to deliver divine judgment upon her foes!"},
+    "Black Panther": {"real_name": "T'Challa", "overview": "T'Challa, King of Wakanda, wields the perfect blend of the cutting-edge Vibranium technology and ancestral power drawn from the Panther God, Bast. The Black Panther bides his time until elegantly infiltrating enemy lines and commencing his hunt."},
+    "Black Widow": {"real_name": "Natasha Romanova", "overview": "Natasha Romanova is the world's most elite spy in any era. Her mastery of the sniper rifle eliminates targets from afar, while her shock batons neutralize close-range threats. Black Widow is locked, loaded, and ready to deliver a fatal bite!"},
+    "Blade": {"real_name": "Eric Brooks", "overview": "Half-human and half-vampire, Eric Brooks walks between worlds, craving the very life force of his enemies. As night falls, Blade's hunt begins as he wields the Sword of Dracula to become the nightmare of any foe who dares to bare their fangs."},
+    "Captain America": {"real_name": "Steven “Steve” Rogers", "overview": "Enhanced by the Super-Soldier Serum, Steven 'Steve' Rogers uses his Vibranium shield and extensive combat training to confront any threat to justice. When Captain America rallies his troops, a wave of courage sweeps across the battlefield!"},
+    "Cloak & Dagger": {"real_name": "Tyrone Johnson and Tandy Bowen", "overview": "Tyrone Johnson and Tandy Bowen are nearly inseparable, like two sides of the same coin. Intertwined by forces of shadow and light, Cloak & Dagger fight as a united front, dealing havoc and healing allies across the arena."},
+    "Daredevil": {"real_name": "Matt Murdock", "overview": "A tragic accident transformed Matt Murdock, blinding him, but awakening his incredible Radar Sense. When darkness falls, Daredevil wields his billy clubs in place of a gavel, doling out justice and purging the world of evil!"},
+    "Deadpool": {"real_name": "Wade Wilson", "overview": "Wade Wilson is the full package, with devastating damage output, an impenetrable shield, and swift healing. There's no limit to what Deadpool can achieve, as long as he keeps his moves flashy! And, of course, every epic attack comes with an endless barrage of witty banter!"},
+    "Doctor Strange": {"real_name": "Stephen Strange", "overview": "As the Sorcerer Supreme, Doctor Stephen Strange gracefully wields ancient spells to turn the tide of even the most impossible battle. However, magic always comes at a cost, and each use of his arcane abilities gradually awakens the darkness within him."},
+    "Elsa Bloodstone": {"real_name": "Elsa Bloodstone", "overview": "Born into a line of legendary monster hunters, Elsa Bloodstone boasts incredible physical prowess and an innate talent for subduing the creepiest of creatures. The instinct to hunt is in her blood, and every foe she faces inevitably becomes prey ensnared in her traps!"},
+    "Emma Frost": {"real_name": "Emma Frost", "overview": "For Emma Frost, war is the purest form of art. With her formidable telepathic abilities, she intricately weaves a deadly mental web that ensnares her foes, while her indestructible diamond form lets her lead her teammates fearlessly into the fray. Forever elegant and composed, Emma reigns as the one true queen of the battlefield!"},
+    "Gambit": {"real_name": "Remy LeBeau", "overview": "Charming and free-spirited, Remy LeBeau manipulates kinetic energy with unmatched skill. With a flick of his wrist, his charged playing cards become explosive projectiles for foes or heal his allies through kinetic shifting. When the charismatic Gambit lights up the battlefield, he always plays to win!"},
+    "Groot": {"real_name": "Groot", "overview": "A flora colossus from Planet X, the alien known as Groot exhibits enhanced vitality and the ability to manipulate all forms of vegetation. As sturdy as a towering tree, Groot forges his own way, serving as the team's silent but reliable pathfinder."},
+    "Hawkeye": {"real_name": "Clint Barton", "overview": "Despite his lack of superpowers, Hawkeye's unparalleled skills as a marksman have earned him a spot alongside earth's mightiest heroes. With a cool head and steady hand, Clint Barton never misses a target… so enemies best stay out of his sights!"},
+    "Hela": {"real_name": "Hela", "overview": "As the Goddess of Death, Hela wields supreme control over the fallen souls residing in Hel. With a haunting whisper and a murder of crows, the queen of the underworld gracefully reaps the souls of her enemies without an ounce of mercy."},
+    "Hulk": {"real_name": "Bruce Banner", "overview": "Brilliant scientist Dr. Bruce Banner has finally found a way to coexist with his monstrous alter ego, the Hulk. By accumulating gamma energy over multiple transformations, he can become a wise and strong Hero Hulk or a fierce and destructive Monster Hulk – a true force of fury on the battlefield!"},
+    "Human Torch": {"real_name": "Johnny Storm", "overview": "The Fantastic Four's resident heartthrob, Johnny Storm, adds an intense flare to every battle he fights. Shrouded in roaring flames, the Human Torch always manages to look cool while turning up the heat!"},
+    "Invisible Woman": {"real_name": "Susan Storm", "overview": "The Invisible Woman is able to slip in and out of sight without a trace. No matter how intense the battle may be, Susan Richards always keeps her cool, conjuring up impenetrable force fields to protect herself and her team."},
+    "Iron Fist": {"real_name": "Lin Lie", "overview": "Lin Lie is a master of Chinese martial arts who once wielded the shattered Sword of Fu Xi. After fusing its pieces with the mighty Chi of Shou-Lao, he is poised to strike his foes with the grace and force of a soaring dragon as the latest immortal Iron Fist."},
+    "Iron Man": {"real_name": "Anthony \"Tony\" Stark", "overview": "Armed with superior intellect and a nanotech battlesuit of his own design, Tony Stark stands alongside gods as the Invincible Iron Man. His state of the art armor turns any battlefield into his personal playground, allowing him to steal the spotlight he so desperately desires."},
+    "Jeff The Land Shark": {"real_name": "Jeff", "overview": "Most landsharks are vicious creatures of the deep... but not Jeff! This adorable and mischievous little landshark brings splashes of joy and healing to every battle. But if the tide turns, Jeff can morph into a voracious beast, swallowing an army of foes in one giant gulp!"},
+    "Loki": {"real_name": "Loki Laufeyson", "overview": "What greater thrill is there for a God of Mischief than to outsmart his foes? The cunning trickster Loki uses his illusions and shapeshifting abilities to weave in and out of combat, toying with enemies at every turn."},
+    "Luna Snow": {"real_name": "Seol Hee", "overview": "Equal parts pop star and Super Hero, Luna Snow puts on a dazzling show with both her light and dark ice powers. The arena is her stage, where Seol Hee and her team orchestrate spectacular displays that earn her an ever-increasing number of fans and wins."},
+    "Magik": {"real_name": "Illyana Rasputin", "overview": "Trained in the dark arts and wielding her mighty Soulsword, Magik leaps through portals to navigate the arena with ease. Once Illyana transforms into the demonic Darkchild, all who dare stand against her will fall before her merciless blade."},
+    "Magneto": {"real_name": "Max Eisenhardt", "overview": "The Master of Magnetism bends even the strongest metal to his whims, shielding his allies and striking at his foes. Whether he calls himself Max Eisenhardt, Erik Lehnsherr, or simply Magneto, the hardships this warrior has endured have made him as unbreakable as the steel he brandishes."},
+    "Mantis": {"real_name": "Mantis", "overview": "Mantis uses her impressive mental abilities and her penchant for plant control to anchor any team she fights alongside. Her powers tap into a limitless flow of life energy, gently nourishing everything she touches."},
+    "Mister Fantastic": {"real_name": "Reed Richards", "overview": "Reed Richards believes that true strength comes from remaining flexible, both mentally and physically. Mister Fantastic's elastic body, which can twist and stretch into any form with ease, is almost as impressive as his brilliant mind."},
+    "Moon Knight": {"real_name": "Marc Spector", "overview": "As the avatar of the Egyptian God of Vengeance, Marc Spector's body has been enhanced by Khonshu himself. Bathed in a luminous aura that pierces the darkness, Moon Knight glides through the night, ready to sear his enemies with his master's sacred Ankhs."},
+    "Namor": {"real_name": "Namor McKenzie", "overview": "The unrivaled King of the Seas, Namor surfs into battle on a mighty wave with an army of fierce aquatic creatures in his wake. When ancient horns of war blare, devastation soon follows as deadly waters engulf the arena."},
+    "Peni Parker": {"real_name": "Peni Parker", "overview": "Peni Parker may be young, but she bravely stands on the frontlines to protect the Web of Life and Destiny. Together, this teen prodigy and her state-of-the-art mech, the sensational SP//dr, make for the most thrilling duo on the battlefield!"},
+    "Phoenix": {"real_name": "Jean Grey", "overview": "Original X-Man Jean Grey boasted immense psychic power even before becoming host the unbridled Phoenix Force, embodiment of life and psionic energy across the universe. Now aligned with this ancient cosmic power, Jean and the Phoenix traverse space together, burning bright as both a spark of creation and inferno of destruction!"},
+    "Psylocke": {"real_name": "Sai", "overview": "The psychic warrior known as Sai has the Mutant ability to conjure a variety of weapons with the power of her mind. Gracefully gliding across the battlefield, this trained ninja can shatter the enemy's defenses with a single thought."},
+    "Rocket Raccoon": {"real_name": "Rocket Raccoon", "overview": "Rocket may not look like a tech genius or an expert tactician, but anyone who's ever made his hit list has quickly regretted underestimating him. This savvy space soldier is equally eager to boost his teammates and to collect bounties on his foes."},
+    "Rogue": {"real_name": "Anna Marie", "overview": "Anna Marie possesses the Mutant ability to absorb the powers of others with a touch. Her ever-adaptable arsenal of superhuman abilities helps turn the tide of any fight. After touching Raw Chronovium, Rogue's strength soared to new heights, allowing her to overwhelm enemies with unstoppable force!"},
+    "Scarlet Witch": {"real_name": "Wanda Maximoff", "overview": "Wanda Maximoff is adept at harnessing formidable chaos magic, casting hexes with the power to twist and reshape reality itself. Energy, space, and matter are mere playthings in the hands of Scarlet Witch!"},
+    "Spider-Man": {"real_name": "Peter Parker", "overview": "Swinging around the arena on his signature weblines, your friendly neighborhood Spider-Man, AKA Peter Parker, catches his rivals by surprise with sneaky, sticky bursts of webbing and unexpected attacks from above. Look out… here comes the Spider-Man!"},
+    "Squirrel Girl": {"real_name": "Doreen Green", "overview": "Possessing only the powers of a common squirrel, somehow Doreen Green manages to defeat seemingly invincible enemies in the most unexpected ways. Any foe who counts her out is bound to fall at the hands of the Unbeatable Squirrel Girl!"},
+    "Star-Lord": {"real_name": "Peter Quill", "overview": "Peter Quill lives to dazzle his foes on the battlefield with his signature swagger. As his element guns paint arcs of devastation, his acrobatic moves sail through the sky with unrivaled style. With performances this spectacular, it's no wonder that Star-Lord is so legendary!"},
+    "Storm": {"real_name": "Ororo Munroe", "overview": "An Omega-level Mutant ability to manipulate weather patterns makes Ororo Munroe a force to be reckoned with. Rain or shine, thunder or lightning, nature itself bends to the command of the Goddess of the Storm!"},
+    "The Punisher": {"real_name": "Frank Castle", "overview": "Expertly wielding a full arsenal of futuristic weapons, Frank Castle is a formidable one-man army. With a steadfast resolve to deliver justice to his enemies, The Punisher won't cease in his mission until every last round is fired!"},
+    "The Thing": {"real_name": "Ben Grimm", "overview": "Benjamin J. Grimm is unquestionably the rock star of any team he's on. Always at the forefront of the fight, the Thing shields his allies with his unbreakable form, selflessly fending off any harm that comes their way."},
+    "Thor": {"real_name": "Thor Odinson", "overview": "The son of Odin taps into his divine power to call forth thunder and lightning, raining down relentless fury upon his enemies. With his mighty hammer Mjolnir in hand, Thor effortlessly asserts his dominance on the field of combat."},
+    "Ultron": {"real_name": "Ultron", "overview": "The Pinnacle of artificial lifeforms, Ultron is programmed to learn and adapt in ways beyond human capability. He can summon an army of automated drones that obey his every command, raising his chances of victory exponentially."},
+    "Venom": {"real_name": "Edward \"Eddie\" Brock", "overview": "Using his symbiote-enhanced body as the perfect living weapon, Eddie Brock and his alien ally stand ever-ready to unleash vicious attacks upon anyone he deems an enemy. Those ensnared by Venom's tentacles have no choice but to surrender to this insatiable predator."},
+    "White Fox": {"real_name": "Ami Han", "overview": "Ami Han, the last of the legendary Kumiho, can summon her ancestral Nine-Tailed Power to fortify herself and heal her allies on the battlefield. As the calm and capable Director of Tiger Division, she is any team's unwavering backbone, no matter the foe."},
+    "Winter Soldier": {"real_name": "James Buchanan \"Bucky\" Barnes", "overview": "Terrifying experiments turned him into a brainwashed assassin, but now James Buchanan 'Bucky' Barnes is in control of his own fate once again. With his enhanced mechanical arm, the Winter Soldier is primed to deliver earth-shattering blows to any foe in his path!"},
+    "Wolverine": {"real_name": "Logan", "overview": "Thanks to his regenerative healing factor and berserker rage, the centuries-old Logan can fight through the worst pain to go claw-to-claw with any foe. The Wolverine stands ready to shred through all obstacles in his way with his Adamantium claws."},
 }
 
 full_df = pd.DataFrame(data)
@@ -707,11 +574,10 @@ tabs = st.tabs(["Overview", "Details", "Comparison", "Tier Lists", "Team Comps"]
 with tabs[0]:
     st.markdown("## How To Use")
     st.write("Use the sidebar filters to narrow the roster. Then browse characters in Details, compare two heroes in Comparison, build custom rankings in Tier Lists, and save six-character squads in Team Comps.")
-    st.write("Saved tier lists and team comps now appear in their dropdowns immediately after saving.")
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.markdown(f"<div class='metric-card'><h3>Characters Shown</h3><h2>{len(filtered_df)}</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>Characters</h3><h2>{len(filtered_df)}</h2></div>", unsafe_allow_html=True)
     with c2:
         avg_health = round(filtered_df["health"].mean(), 1) if not filtered_df.empty else 0
         st.markdown(f"<div class='metric-card'><h3>Average Health</h3><h2>{avg_health}</h2></div>", unsafe_allow_html=True)
@@ -758,18 +624,64 @@ with tabs[1]:
             st.write(f"Health: {character_info['health']}")
 
         with right_col:
-            chart_df = pd.DataFrame(
-                {
-                    "Stat": ["Health", "Mobility", "Damage", "Difficulty"],
-                    "Value": [
-                        character_info["health"],
-                        character_info["mobility"],
-                        character_info["damage"],
-                        character_info["difficulty"],
-                    ],
-                }
+            health_min = full_df["health"].min()
+            health_max = full_df["health"].max()
+
+            if health_max > health_min:
+                health_rating = 1 + 4 * (
+                    (character_info["health"] - health_min) / (health_max - health_min)
+                )
+            else:
+                health_rating = 3
+
+            stat_labels = ["Health Rating", "Mobility", "Damage", "Difficulty"]
+            stat_values = [
+                round(health_rating, 2),
+                character_info["mobility"],
+                character_info["damage"],
+                character_info["difficulty"],
+            ]
+
+            role_color = get_role_color(character_info["role"])
+
+            fig = go.Figure()
+            fig.add_trace(
+                go.Scatterpolar(
+                    r=stat_values + [stat_values[0]],
+                    theta=stat_labels + [stat_labels[0]],
+                    fill="toself",
+                    name=character_info["name"],
+                    line=dict(color=role_color, width=3),
+                    fillcolor=get_role_fill_color(character_info["role"]),
+                )
             )
-            st.bar_chart(chart_df.set_index("Stat"))
+
+            fig.update_layout(
+                polar=dict(
+                    bgcolor="rgba(0,0,0,0)",
+                    radialaxis=dict(
+                        visible=True,
+                        range=[0, 5],
+                        tickvals=[1, 2, 3, 4, 5],
+                        gridcolor="rgba(255,255,255,0.12)",
+                        linecolor="rgba(255,255,255,0.18)",
+                        tickfont=dict(color="white"),
+                    ),
+                    angularaxis=dict(
+                        gridcolor="rgba(255,255,255,0.10)",
+                        linecolor="rgba(255,255,255,0.18)",
+                        tickfont=dict(color="white", size=12),
+                    ),
+                ),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="white"),
+                margin=dict(l=30, r=30, t=30, b=30),
+                showlegend=False,
+            )
+
+            st.caption("Health is normalized into a 1-5 rating here so it can be compared fairly with mobility, damage, and difficulty.")
+            st.plotly_chart(fig, use_container_width=True, theme=None)
 
 with tabs[2]:
     st.markdown("## Character Comparison")
