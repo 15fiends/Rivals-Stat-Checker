@@ -45,6 +45,21 @@ def save_json(path: str, data: dict) -> None:
         json.dump(data, file, indent=2)
 
 
+def set_flash_message(message: str, message_type: str = "success") -> None:
+    st.session_state.flash_message = {
+        "text": message,
+        "type": message_type,
+    }
+
+
+def show_flash_message() -> None:
+    flash_message = st.session_state.pop("flash_message", None)
+    if not flash_message:
+        return
+
+    getattr(st, flash_message["type"], st.info)(flash_message["text"])
+
+
 def get_image_filename(character_name: str) -> str:
     return (
         character_name.lower()
@@ -147,6 +162,8 @@ def get_role_color(role_name: str) -> str:
         return "#35c759"
     if role_name == "Vanguard":
         return "#3b82f6"
+    if role_name == "Varied":
+        return "#b66bff"
     return "#00d4ff"
 
 
@@ -157,6 +174,8 @@ def get_role_fill_color(role_name: str) -> str:
         return "rgba(53, 199, 89, 0.22)"
     if role_name == "Vanguard":
         return "rgba(59, 130, 246, 0.22)"
+    if role_name == "Varied":
+        return "rgba(182, 107, 255, 0.22)"
     return "rgba(0, 212, 255, 0.22)"
 
 
@@ -620,11 +639,11 @@ full_df["overview"] = full_df["name"].map(lambda name: character_lore.get(name, 
 all_character_names = full_df["name"].tolist()
 
 if "current_tierlist_name" not in st.session_state:
-    st.session_state.current_tierlist_name = "My Tier List"
+    st.session_state.current_tierlist_name = "My List"
 if "current_tierlist_data" not in st.session_state:
     st.session_state.current_tierlist_data = empty_tierlist()
 if "current_team_name" not in st.session_state:
-    st.session_state.current_team_name = "My Team Comp"
+    st.session_state.current_team_name = "My Team"
 if "current_team_data" not in st.session_state:
     st.session_state.current_team_data = empty_team_comp()
 
@@ -666,6 +685,54 @@ filtered_df = filtered_df[filtered_df["damage"] >= min_damage]
 filtered_df = filtered_df[filtered_df["mobility"] >= min_mobility]
 filtered_df = filtered_df[filtered_df["difficulty"] <= max_difficulty]
 filtered_character_names = filtered_df["name"].tolist()
+
+slider_color = "#00d4ff"
+slider_glow = "rgba(0, 212, 255, 0.35)"
+if role_filter == "Duelist":
+    slider_color = "#ff4a4a"
+    slider_glow = "rgba(255, 74, 74, 0.35)"
+elif role_filter == "Strategist":
+    slider_color = "#35c759"
+    slider_glow = "rgba(53, 199, 89, 0.35)"
+elif role_filter == "Vanguard":
+    slider_color = "#3b82f6"
+    slider_glow = "rgba(59, 130, 246, 0.35)"
+elif role_filter == "Varied":
+    slider_color = "#b66bff"
+    slider_glow = "rgba(182, 107, 255, 0.35)"
+
+st.markdown(
+    f"""
+    <style>
+        section[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
+            border-color: {slider_color} !important;
+            box-shadow: 0 0 0 1px {slider_color} inset, 0 0 12px {slider_glow};
+        }}
+
+        section[data-testid="stSidebar"] div[data-baseweb="select"] span {{
+            color: #f4f7fb;
+        }}
+
+        section[data-testid="stSidebar"] div[data-baseweb="slider"] div[role="slider"] {{
+            background-color: {slider_color};
+            border-color: {slider_color};
+            box-shadow: 0 0 0 1px {slider_color}, 0 0 12px {slider_glow};
+        }}
+
+        section[data-testid="stSidebar"] div[data-baseweb="slider"] > div > div > div {{
+            background-color: {slider_color};
+        }}
+
+        section[data-testid="stSidebar"] div[data-baseweb="slider"] p,
+        section[data-testid="stSidebar"] div[data-baseweb="slider"] span {{
+            color: {slider_color} !important;
+        }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+show_flash_message()
 
 tabs = st.tabs(["Overview", "Details", "Comparison", "Tier Lists", "Team Comps"])
 
@@ -912,11 +979,11 @@ with tabs[3]:
     st.markdown("## Tier Lists")
     st.write("Assign characters into S through D ranks, then save or load different tier list categories.")
 
-    tier_prefix = st.text_input(
+    tier_name = st.text_input(
         "Tier list title",
-        value=st.session_state.current_tierlist_name.replace(" Tier List", "")
+        value=st.session_state.current_tierlist_name
     )
-    st.session_state.current_tierlist_name = f"{tier_prefix.strip() or 'My'} Tier List"
+    st.session_state.current_tierlist_name = tier_name.strip() or "My List"
 
     tierlists_store = load_json(TIERLISTS_PATH)
     saved_tierlist_name = st.selectbox("Saved tier lists", ["None"] + sorted(tierlists_store.keys()))
@@ -924,7 +991,7 @@ with tabs[3]:
     a1, a2, a3, a4 = st.columns(4)
     with a1:
         if st.button("New Tier List"):
-            st.session_state.current_tierlist_name = "My Tier List"
+            st.session_state.current_tierlist_name = "My List"
             st.session_state.current_tierlist_data = empty_tierlist()
             st.rerun()
     with a2:
@@ -936,7 +1003,7 @@ with tabs[3]:
         if st.button("Save Tier List"):
             tierlists_store[st.session_state.current_tierlist_name] = st.session_state.current_tierlist_data
             save_json(TIERLISTS_PATH, tierlists_store)
-            st.success("Tier list saved.")
+            set_flash_message(f'"{st.session_state.current_tierlist_name}" saved.')
             st.rerun()
     with a4:
         if st.button("Delete Tier List"):
@@ -980,7 +1047,7 @@ with tabs[4]:
     st.write("Choose 6 characters, then save or load named team compositions.")
 
     team_name = st.text_input("Team comp name", value=st.session_state.current_team_name)
-    st.session_state.current_team_name = team_name.strip() or "My Team Comp"
+    st.session_state.current_team_name = team_name.strip() or "My Team"
 
     team_comps_store = load_json(TEAM_COMPS_PATH)
     saved_comp_name = st.selectbox("Saved team comps", ["None"] + sorted(team_comps_store.keys()))
@@ -988,7 +1055,7 @@ with tabs[4]:
     b1, b2, b3, b4 = st.columns(4)
     with b1:
         if st.button("New Team Comp"):
-            st.session_state.current_team_name = "My Team Comp"
+            st.session_state.current_team_name = "My Team"
             st.session_state.current_team_data = empty_team_comp()
             st.rerun()
     with b2:
@@ -1000,7 +1067,7 @@ with tabs[4]:
         if st.button("Save Team Comp"):
             team_comps_store[st.session_state.current_team_name] = st.session_state.current_team_data
             save_json(TEAM_COMPS_PATH, team_comps_store)
-            st.success("Team comp saved.")
+            set_flash_message(f'"{st.session_state.current_team_name}" saved.')
             st.rerun()
     with b4:
         if st.button("Delete Team Comp"):
