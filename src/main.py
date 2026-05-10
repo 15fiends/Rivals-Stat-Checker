@@ -802,18 +802,83 @@ with tabs[2]:
 
     first_row = full_df[full_df["name"] == compare_1].iloc[0]
     second_row = full_df[full_df["name"] == compare_2].iloc[0]
+    health_min = full_df["health"].min()
+    health_max = full_df["health"].max()
 
-    comparison_rows = []
-    for stat_name in ["health", "mobility", "damage", "difficulty"]:
-        comparison_rows.append(
-            {
-                "Stat": stat_name.title(),
-                compare_1: first_row[stat_name],
-                compare_2: second_row[stat_name],
-            }
+    def normalize_health(health_value: int) -> float:
+        if health_max > health_min:
+            return round(1 + 4 * ((health_value - health_min) / (health_max - health_min)), 2)
+        return 3
+
+    stat_labels = ["Health Rating", "Mobility", "Damage", "Difficulty"]
+    first_values = [
+        normalize_health(first_row["health"]),
+        first_row["mobility"],
+        first_row["damage"],
+        first_row["difficulty"],
+    ]
+    second_values = [
+        normalize_health(second_row["health"]),
+        second_row["mobility"],
+        second_row["damage"],
+        second_row["difficulty"],
+    ]
+
+    comparison_fig = go.Figure()
+    comparison_fig.add_trace(
+        go.Scatterpolar(
+            r=first_values + [first_values[0]],
+            theta=stat_labels + [stat_labels[0]],
+            fill="toself",
+            name=compare_1,
+            line=dict(color=get_role_color(first_row["role"]), width=3),
+            fillcolor=get_role_fill_color(first_row["role"]),
         )
+    )
+    comparison_fig.add_trace(
+        go.Scatterpolar(
+            r=second_values + [second_values[0]],
+            theta=stat_labels + [stat_labels[0]],
+            fill="toself",
+            name=compare_2,
+            line=dict(color=get_role_color(second_row["role"]), width=3),
+            fillcolor=get_role_fill_color(second_row["role"]),
+        )
+    )
 
-    st.bar_chart(pd.DataFrame(comparison_rows).set_index("Stat"))
+    comparison_fig.update_layout(
+        polar=dict(
+            bgcolor="rgba(0,0,0,0)",
+            radialaxis=dict(
+                visible=True,
+                range=[0, 5],
+                tickvals=[1, 2, 3, 4, 5],
+                gridcolor="rgba(255,255,255,0.12)",
+                linecolor="rgba(255,255,255,0.18)",
+                tickfont=dict(color="white"),
+            ),
+            angularaxis=dict(
+                gridcolor="rgba(255,255,255,0.10)",
+                linecolor="rgba(255,255,255,0.18)",
+                tickfont=dict(color="white", size=12),
+            ),
+        ),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),
+        margin=dict(l=30, r=30, t=30, b=30),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+    )
+
+    st.markdown(
+        """
+        <p class="detail-note">
+            Health is normalized into a 1-5 rating here so it compares cleanly with mobility, damage, and difficulty.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+    st.plotly_chart(comparison_fig, use_container_width=True, theme=None)
 
 with tabs[3]:
     st.markdown("## Tier Lists")
