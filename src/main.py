@@ -449,6 +449,15 @@ st.markdown("""
         line-height: 1.45;
     }
 
+    .filter-note {
+        font-family: 'Rajdhani', sans-serif;
+        color: #c6d6e8;
+        font-size: 17px;
+        line-height: 1.45;
+        margin-top: 6px;
+        margin-bottom: 18px;
+    }
+
     .tier-s {
         background: rgba(45, 180, 80, 0.18);
         padding: 12px;
@@ -663,6 +672,15 @@ tabs = st.tabs(["Overview", "Details", "Comparison", "Tier Lists", "Team Comps"]
 with tabs[0]:
     st.markdown("## How To Use")
     st.write("Use the sidebar filters to narrow the roster. Then browse characters in Details, compare two heroes in Comparison, build custom rankings in Tier Lists, and save six-character squads in Team Comps.")
+    st.markdown(
+        """
+        <p class="filter-note">
+            The sidebar filters stay active across the whole app. If you are comparing characters, building team comps,
+            or placing heroes in tier lists, only characters that match your current filters will appear in those sections.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 
     c1, c2, c3 = st.columns(3)
     with c1:
