@@ -439,9 +439,9 @@ st.markdown("""
     }
 
     .vanguard {
-        background: rgba(0, 212, 255, 0.14);
-        color: #87ebff;
-        border: 1px solid rgba(0, 212, 255, 0.42);
+        background: rgba(182, 107, 255, 0.14);
+        color: #dfb6ff;
+        border: 1px solid rgba(182, 107, 255, 0.4);
     }
 
     .strategist {
@@ -451,9 +451,9 @@ st.markdown("""
     }
 
     .varied {
-        background: rgba(182, 107, 255, 0.14);
-        color: #dfb6ff;
-        border: 1px solid rgba(182, 107, 255, 0.4);
+        background: rgba(255, 210, 74, 0.16);
+        color: #ffe08a;
+        border: 1px solid rgba(255, 210, 74, 0.42);
     }
 
     .profile-name {
