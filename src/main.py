@@ -176,6 +176,83 @@ def render_character_icon_row(character_names: list[str], size: int = 80) -> Non
                     st.caption(name)
 
 
+def render_top_character_cards(dataframe: pd.DataFrame, stat_name: str, top_n: int = 6) -> None:
+    if dataframe.empty:
+        st.info("No characters match your current filters.")
+        return
+
+    top_df = dataframe.sort_values(by=stat_name, ascending=False).head(top_n).reset_index(drop=True)
+    cols = st.columns(top_n)
+
+    for index, col in enumerate(cols):
+        if index < len(top_df):
+            row = top_df.iloc[index]
+            character_name = row["name"]
+            image_path = get_image_path(character_name)
+            image_uri = get_image_data_uri(image_path)
+            role_color = get_role_color(row["role"])
+
+            with col:
+                if image_uri:
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background: rgba(17, 24, 39, 0.9);
+                            border: 1px solid {role_color};
+                            border-radius: 18px;
+                            padding: 12px;
+                            text-align: center;
+                            min-height: 220px;
+                            box-shadow: 0 0 14px rgba(0, 0, 0, 0.25);
+                        ">
+                            <img src="{image_uri}" style="
+                                width:90px;
+                                height:90px;
+                                border-radius:50%;
+                                object-fit:cover;
+                                border:3px solid {role_color};
+                                box-shadow:0 0 12px {role_color};
+                                margin-bottom:10px;
+                            ">
+                            <div style="font-family: Orbitron, sans-serif; color: white; font-size: 14px; margin-bottom: 6px;">
+                                {character_name}
+                            </div>
+                            <div style="color: {role_color}; font-weight: bold; margin-bottom: 6px;">
+                                {row['role']}
+                            </div>
+                            <div style="color: #d9e4ef;">
+                                {stat_name.title()}: {row[stat_name]}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background: rgba(17, 24, 39, 0.9);
+                            border: 1px solid {role_color};
+                            border-radius: 18px;
+                            padding: 12px;
+                            text-align: center;
+                            min-height: 220px;
+                        ">
+                            <div style="font-family: Orbitron, sans-serif; color: white; font-size: 14px; margin-bottom: 6px;">
+                                {character_name}
+                            </div>
+                            <div style="color: {role_color}; font-weight: bold; margin-bottom: 6px;">
+                                {row['role']}
+                            </div>
+                            <div style="color: #d9e4ef;">
+                                {stat_name.title()}: {row[stat_name]}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+
 ensure_data_files()
 
 st.markdown("""
@@ -255,9 +332,9 @@ st.markdown("""
     }
 
     .strategist {
-        background: rgba(255, 191, 71, 0.14);
-        color: #ffd57b;
-        border: 1px solid rgba(255, 191, 71, 0.35);
+        background: rgba(53, 199, 89, 0.16);
+        color: #9ef0b4;
+        border: 1px solid rgba(53, 199, 89, 0.45);
     }
 
     .varied {
@@ -646,6 +723,15 @@ with tabs[0]:
         st.warning("No characters match your current filters.")
     else:
         st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+
+    st.markdown("## Top Character Picks")
+    top_stat = st.selectbox(
+        "Show top characters by",
+        ["health", "damage", "mobility", "difficulty"],
+        format_func=lambda value: value.title(),
+        key="top_stat_picker"
+    )
+    render_top_character_cards(filtered_df, top_stat, top_n=6)
 
 with tabs[1]:
     st.markdown("## Character Details")
