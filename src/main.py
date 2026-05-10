@@ -1,4 +1,5 @@
 import os
+import base64
 import streamlit as st
 import pandas as pd
 
@@ -12,10 +13,23 @@ def get_image_path(filename):
 
 
 def get_image_filename(character_name):
-    return character_name.lower().replace("-", "").replace(" ", "_").replace("&", "and").replace("__", "_") + ".png"
+    return (
+        character_name.lower()
+        .replace("-", "")
+        .replace(" ", "_")
+        .replace("&", "and")
+        .replace("__", "_")
+        + ".png"
+    )
 
 
-logo_path = get_image_path("marvel_rivals_logo.png")
+def get_image_data_uri(image_path):
+    if not os.path.exists(image_path):
+        return None
+    with open(image_path, "rb") as image_file:
+        encoded = base64.b64encode(image_file.read()).decode()
+    return f"data:image/png;base64,{encoded}"
+
 
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
@@ -46,27 +60,6 @@ st.markdown("""
         box-shadow: 0 0 30px rgba(0, 0, 0, 0.28);
     }
 
-    .hero-subtitle {
-        color: #d0dceb;
-        font-size: 18px;
-        line-height: 1.4;
-        margin-top: 12px;
-    }
-
-    .logo-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-        flex-wrap: wrap;
-    }
-
-    .logo-title-block {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
     .checker-title {
         font-family: 'Orbitron', sans-serif;
         font-size: 36px;
@@ -75,6 +68,13 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 1px;
         margin-top: 10px;
+    }
+
+    .hero-subtitle {
+        color: #d0dceb;
+        font-size: 18px;
+        line-height: 1.4;
+        margin-top: 12px;
     }
 
     .custom-card {
@@ -268,6 +268,8 @@ data = [
 full_df = pd.DataFrame(data)
 filtered_df = full_df.copy()
 
+logo_path = get_image_path("marvel_rivals_logo.png")
+
 st.markdown("<div class='hero-box'>", unsafe_allow_html=True)
 
 if os.path.exists(logo_path):
@@ -386,12 +388,13 @@ with tab2:
 
         image_filename = get_image_filename(character_info["name"])
         image_path = get_image_path(image_filename)
+        image_data_uri = get_image_data_uri(image_path)
 
-        if os.path.exists(image_path):
+        if image_data_uri:
             st.markdown(
                 f"""
                 <div class="profile-wrap">
-                    <img src="file://{image_path}" class="profile-image">
+                    <img src="{image_data_uri}" class="profile-image">
                     <div class="profile-name">{character_info['name']}</div>
                 </div>
                 """,
@@ -459,17 +462,17 @@ with tab3:
     first_row = full_df[full_df["name"] == compare_1].iloc[0]
     second_row = full_df[full_df["name"] == compare_2].iloc[0]
 
-    image_1 = get_image_path(get_image_filename(compare_1))
-    image_2 = get_image_path(get_image_filename(compare_2))
+    image_1 = get_image_data_uri(get_image_path(get_image_filename(compare_1)))
+    image_2 = get_image_data_uri(get_image_path(get_image_filename(compare_2)))
 
     img_col1, img_col2 = st.columns(2)
 
     with img_col1:
-        if os.path.exists(image_1):
+        if image_1:
             st.markdown(
                 f"""
                 <div class="profile-wrap">
-                    <img src="file://{image_1}" class="profile-image">
+                    <img src="{image_1}" class="profile-image">
                     <div class="profile-name">{compare_1}</div>
                 </div>
                 """,
@@ -479,11 +482,11 @@ with tab3:
             st.subheader(compare_1)
 
     with img_col2:
-        if os.path.exists(image_2):
+        if image_2:
             st.markdown(
                 f"""
                 <div class="profile-wrap">
-                    <img src="file://{image_2}" class="profile-image">
+                    <img src="{image_2}" class="profile-image">
                     <div class="profile-name">{compare_2}</div>
                 </div>
                 """,
