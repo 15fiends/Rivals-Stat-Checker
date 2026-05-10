@@ -53,13 +53,30 @@ def get_image_path(character_name: str) -> str:
     return os.path.join(IMAGES_PATH, get_image_filename(character_name))
 
 
+def get_image_mime_type(image_path: str) -> str:
+    with open(image_path, "rb") as image_file:
+        header = image_file.read(12)
+
+    if header.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if header[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if header.startswith(b"GIF87a") or header.startswith(b"GIF89a"):
+        return "image/gif"
+    if header.startswith(b"RIFF") and header[8:12] == b"WEBP":
+        return "image/webp"
+    return "application/octet-stream"
+
+
 @st.cache_data(show_spinner=False)
 def get_image_data_uri(image_path: str) -> str | None:
     if not os.path.exists(image_path):
         return None
+
+    mime_type = get_image_mime_type(image_path)
     with open(image_path, "rb") as image_file:
         encoded = base64.b64encode(image_file.read()).decode("utf-8")
-    return f"data:image/png;base64,{encoded}"
+    return f"data:{mime_type};base64,{encoded}"
 
 
 def empty_tierlist() -> dict[str, list[str]]:
