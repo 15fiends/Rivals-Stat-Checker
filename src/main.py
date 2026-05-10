@@ -15,15 +15,17 @@ def get_image_filename(character_name):
     return character_name.lower().replace("-", "").replace(" ", "_").replace("&", "and").replace("__", "_") + ".png"
 
 
+logo_path = get_image_path("marvel_rivals_logo.png")
+
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
     .stApp {
         background:
-            radial-gradient(circle at top left, rgba(0, 183, 255, 0.18), transparent 28%),
-            radial-gradient(circle at top right, rgba(255, 59, 59, 0.18), transparent 30%),
-            linear-gradient(135deg, #070b14 0%, #0f1726 45%, #131c2f 100%);
+            radial-gradient(circle at top left, rgba(0, 212, 255, 0.16), transparent 30%),
+            radial-gradient(circle at top right, rgba(255, 70, 70, 0.16), transparent 30%),
+            linear-gradient(135deg, #060b14 0%, #0c1524 45%, #152235 100%);
         color: #f4f7fb;
         font-family: 'Rajdhani', sans-serif;
     }
@@ -35,33 +37,49 @@ st.markdown("""
     }
 
     .hero-box {
-        background: linear-gradient(135deg, rgba(14, 26, 45, 0.95), rgba(26, 36, 58, 0.92));
-        border: 1px solid rgba(0, 224, 255, 0.25);
-        border-left: 5px solid #ff4b4b;
-        border-radius: 18px;
-        padding: 24px;
+        background: linear-gradient(135deg, rgba(12, 22, 38, 0.96), rgba(23, 37, 60, 0.94));
+        border: 1px solid rgba(0, 212, 255, 0.28);
+        border-left: 5px solid #ff4a4a;
+        border-radius: 22px;
+        padding: 26px;
         margin-bottom: 18px;
-        box-shadow: 0 0 25px rgba(0, 0, 0, 0.28);
-    }
-
-    .hero-title {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 40px;
-        font-weight: 800;
-        color: #ffffff;
-        margin-bottom: 8px;
-        text-transform: uppercase;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.28);
     }
 
     .hero-subtitle {
-        color: #c7d3e2;
+        color: #d0dceb;
         font-size: 18px;
         line-height: 1.4;
+        margin-top: 12px;
+    }
+
+    .logo-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .logo-title-block {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .checker-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 10px;
     }
 
     .custom-card {
-        background: linear-gradient(180deg, rgba(26, 34, 52, 0.98), rgba(18, 26, 40, 0.98));
-        border: 1px solid rgba(110, 133, 164, 0.22);
+        background: linear-gradient(180deg, rgba(24, 35, 54, 0.98), rgba(16, 25, 39, 0.98));
+        border: 1px solid rgba(120, 145, 180, 0.20);
         border-radius: 16px;
         padding: 18px;
         margin-bottom: 16px;
@@ -69,16 +87,16 @@ st.markdown("""
     }
 
     .metric-card {
-        background: linear-gradient(135deg, rgba(18, 28, 45, 0.98), rgba(26, 43, 66, 0.98));
-        border: 1px solid rgba(0, 224, 255, 0.18);
-        border-top: 3px solid #00e0ff;
+        background: linear-gradient(135deg, rgba(19, 30, 48, 0.98), rgba(29, 47, 73, 0.98));
+        border: 1px solid rgba(0, 212, 255, 0.18);
+        border-top: 3px solid #00d4ff;
         border-radius: 16px;
         padding: 18px;
         box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
     }
 
     .stat-label {
-        color: #8fa8c4;
+        color: #9cb3cd;
         font-size: 14px;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -111,27 +129,27 @@ st.markdown("""
     }
 
     .duelist {
-        background: rgba(255, 75, 75, 0.16);
-        color: #ff8f8f;
-        border: 1px solid rgba(255, 75, 75, 0.45);
+        background: rgba(255, 74, 74, 0.16);
+        color: #ff9a9a;
+        border: 1px solid rgba(255, 74, 74, 0.45);
     }
 
     .vanguard {
-        background: rgba(0, 224, 255, 0.14);
-        color: #7deaff;
-        border: 1px solid rgba(0, 224, 255, 0.4);
+        background: rgba(0, 212, 255, 0.14);
+        color: #87ebff;
+        border: 1px solid rgba(0, 212, 255, 0.42);
     }
 
     .strategist {
-        background: rgba(255, 196, 0, 0.14);
-        color: #ffd85e;
-        border: 1px solid rgba(255, 196, 0, 0.35);
+        background: rgba(255, 191, 71, 0.14);
+        color: #ffd57b;
+        border: 1px solid rgba(255, 191, 71, 0.35);
     }
 
     .varied {
-        background: rgba(186, 104, 200, 0.14);
-        color: #e1b7ff;
-        border: 1px solid rgba(186, 104, 200, 0.4);
+        background: rgba(182, 107, 255, 0.14);
+        color: #dfb6ff;
+        border: 1px solid rgba(182, 107, 255, 0.4);
     }
 
     .stTabs [data-baseweb="tab-list"] {
@@ -139,7 +157,7 @@ st.markdown("""
     }
 
     .stTabs [data-baseweb="tab"] {
-        background-color: rgba(22, 31, 48, 0.9);
+        background-color: rgba(20, 30, 46, 0.92);
         border-radius: 12px 12px 0 0;
         padding: 10px 18px;
         color: #d9e4ef;
@@ -147,7 +165,7 @@ st.markdown("""
     }
 
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #ff4b4b, #00d8ff) !important;
+        background: linear-gradient(135deg, #ff4a4a, #00d4ff) !important;
         color: white !important;
     }
 
@@ -158,13 +176,13 @@ st.markdown("""
     }
 
     .small-note {
-        color: #98a8bc;
+        color: #a0afc2;
         font-size: 15px;
     }
 
     .winner-box {
-        background: linear-gradient(135deg, rgba(0, 224, 255, 0.18), rgba(255, 75, 75, 0.12));
-        border: 1px solid rgba(0, 224, 255, 0.35);
+        background: linear-gradient(135deg, rgba(0, 212, 255, 0.18), rgba(255, 74, 74, 0.12));
+        border: 1px solid rgba(0, 212, 255, 0.35);
         border-radius: 14px;
         padding: 14px;
         margin-bottom: 12px;
@@ -182,8 +200,8 @@ st.markdown("""
         height: 110px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #00d8ff;
-        box-shadow: 0 0 18px rgba(0, 216, 255, 0.35);
+        border: 3px solid #00d4ff;
+        box-shadow: 0 0 18px rgba(0, 212, 255, 0.35);
         background-color: #111827;
     }
 
@@ -250,14 +268,26 @@ data = [
 full_df = pd.DataFrame(data)
 filtered_df = full_df.copy()
 
-st.markdown("""
-<div class="hero-box">
-    <div class="hero-title">Marvel Rivals Stat Checker</div>
-    <div class="hero-subtitle">
-        Explore the roster, compare combat stats, and break down character strengths with a game-inspired dashboard.
-    </div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<div class='hero-box'>", unsafe_allow_html=True)
+
+if os.path.exists(logo_path):
+    logo_col1, logo_col2 = st.columns([1.2, 1])
+    with logo_col1:
+        st.image(logo_path, use_container_width=True)
+    with logo_col2:
+        st.markdown("<div class='checker-title'>Stat Checker</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='hero-subtitle'>Explore the roster, compare combat stats, and break down character strengths with a game-inspired dashboard.</div>",
+            unsafe_allow_html=True
+        )
+else:
+    st.markdown("<div class='checker-title'>Marvel Rivals Stat Checker</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='hero-subtitle'>Explore the roster, compare combat stats, and break down character strengths with a game-inspired dashboard.</div>",
+        unsafe_allow_html=True
+    )
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.caption("Roles and health are based on current Marvel Rivals hero data. Mobility, damage, difficulty, and range labels are app comparison ratings for browsing.")
 
@@ -350,10 +380,7 @@ with tab2:
         st.warning("No characters match your current filters.")
     else:
         detail_options = filtered_df["name"].tolist()
-        selected_character = st.selectbox(
-            "Search or choose a character",
-            detail_options
-        )
+        selected_character = st.selectbox("Search or choose a character", detail_options)
         character_info = filtered_df[filtered_df["name"] == selected_character].iloc[0]
         role_class = character_info["role"].lower().replace(" ", "-")
 
@@ -487,12 +514,7 @@ with tab3:
         else:
             winner = "Tie"
 
-        winner_rows.append(
-            {
-                "Stat": stat_name.title(),
-                "Winner": winner
-            }
-        )
+        winner_rows.append({"Stat": stat_name.title(), "Winner": winner})
 
     comparison_chart_df = pd.DataFrame(comparison_rows).set_index("Stat")
     winners_df = pd.DataFrame(winner_rows)
