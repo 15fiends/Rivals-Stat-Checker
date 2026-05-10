@@ -161,9 +161,9 @@ def get_role_color(role_name: str) -> str:
     if role_name == "Strategist":
         return "#35c759"
     if role_name == "Vanguard":
-        return "#00d4ff"
-    if role_name == "Varied":
         return "#b66bff"
+    if role_name == "Varied":
+        return "#ffd24a"
     return "#00d4ff"
 
 
@@ -173,9 +173,9 @@ def get_role_fill_color(role_name: str) -> str:
     if role_name == "Strategist":
         return "rgba(53, 199, 89, 0.22)"
     if role_name == "Vanguard":
-        return "rgba(0, 212, 255, 0.22)"
-    if role_name == "Varied":
         return "rgba(182, 107, 255, 0.22)"
+    if role_name == "Varied":
+        return "rgba(255, 210, 74, 0.24)"
     return "rgba(0, 212, 255, 0.22)"
 
 
@@ -695,11 +695,11 @@ elif role_filter == "Strategist":
     slider_color = "#35c759"
     slider_glow = "rgba(53, 199, 89, 0.35)"
 elif role_filter == "Vanguard":
-    slider_color = "#00d4ff"
-    slider_glow = "rgba(0, 212, 255, 0.35)"
-elif role_filter == "Varied":
     slider_color = "#b66bff"
     slider_glow = "rgba(182, 107, 255, 0.35)"
+elif role_filter == "Varied":
+    slider_color = "#ffd24a"
+    slider_glow = "rgba(255, 210, 74, 0.35)"
 
 st.markdown(
     f"""
