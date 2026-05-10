@@ -212,7 +212,7 @@ data = [
 ]
 
 full_df = pd.DataFrame(data)
-df = full_df.copy()
+filtered_df = full_df.copy()
 
 st.markdown("""
 <div class="hero-box">
@@ -226,19 +226,25 @@ st.markdown("""
 st.caption("Roles and health are based on current Marvel Rivals hero data. Mobility, damage, difficulty, and range labels are app comparison ratings for browsing.")
 
 st.sidebar.header("Filters")
-role_filter = st.sidebar.selectbox("Role", ["All"] + sorted(df["role"].unique().tolist()))
+role_filter = st.sidebar.selectbox("Role", ["All"] + sorted(full_df["role"].unique().tolist()))
 search_text = st.sidebar.text_input("Search roster by name")
 min_health = st.sidebar.slider("Minimum health", 200, 850, 200)
 min_damage = st.sidebar.slider("Minimum damage", 1, 5, 1)
+min_mobility = st.sidebar.slider("Minimum mobility rating", 1, 5, 1)
+max_difficulty = st.sidebar.slider("Maximum difficulty rating", 1, 5, 5)
 
 if role_filter != "All":
-    df = df[df["role"] == role_filter]
+    filtered_df = filtered_df[filtered_df["role"] == role_filter]
 
 if search_text.strip():
-    df = df[df["name"].str.contains(search_text, case=False, na=False)]
+    filtered_df = filtered_df[
+        filtered_df["name"].str.contains(search_text, case=False, na=False, regex=False)
+    ]
 
-df = df[df["health"] >= min_health]
-df = df[df["damage"] >= min_damage]
+filtered_df = filtered_df[filtered_df["health"] >= min_health]
+filtered_df = filtered_df[filtered_df["damage"] >= min_damage]
+filtered_df = filtered_df[filtered_df["mobility"] >= min_mobility]
+filtered_df = filtered_df[filtered_df["difficulty"] <= max_difficulty]
 
 tab1, tab2, tab3 = st.tabs(["Overview", "Details", "Comparison"])
 
@@ -251,12 +257,12 @@ with tab1:
         st.markdown(f"""
         <div class="metric-card">
             <div class="stat-label">Characters Shown</div>
-            <div class="stat-value">{len(df)}</div>
+            <div class="stat-value">{len(filtered_df)}</div>
         </div>
         """, unsafe_allow_html=True)
 
     with m2:
-        avg_health = round(df["health"].mean(), 1) if not df.empty else 0
+        avg_health = round(filtered_df["health"].mean(), 1) if not filtered_df.empty else 0
         st.markdown(f"""
         <div class="metric-card">
             <div class="stat-label">Average Health</div>
@@ -265,7 +271,7 @@ with tab1:
         """, unsafe_allow_html=True)
 
     with m3:
-        avg_damage = round(df["damage"].mean(), 1) if not df.empty else 0
+        avg_damage = round(filtered_df["damage"].mean(), 1) if not filtered_df.empty else 0
         st.markdown(f"""
         <div class="metric-card">
             <div class="stat-label">Average Damage</div>
@@ -286,15 +292,17 @@ with tab1:
         )
 
     ascending = sort_direction == "Ascending ↑"
-    sorted_df = df.sort_values(by=sort_stat, ascending=ascending).reset_index(drop=True)
+    sorted_df = filtered_df.sort_values(by=sort_stat, ascending=ascending).reset_index(drop=True)
 
     st.markdown("<div class='small-note'>Use the sorting controls to quickly find the strongest characters in each stat category.</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-    st.dataframe(sorted_df, use_container_width=True, hide_index=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    if sorted_df.empty:
+        st.warning("No characters match your current filters.")
+    else:
+        st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
+        st.dataframe(sorted_df, use_container_width=True, hide_index=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    if not sorted_df.empty:
         role_counts = sorted_df["role"].value_counts().rename_axis("Role").reset_index(name="Count")
         st.markdown("<h2 class='section-title'>Role Distribution</h2>", unsafe_allow_html=True)
         st.bar_chart(role_counts.set_index("Role"))
@@ -302,14 +310,15 @@ with tab1:
 with tab2:
     st.markdown("<h2 class='section-title'>Character Details</h2>", unsafe_allow_html=True)
 
-    if df.empty:
+    if filtered_df.empty:
         st.warning("No characters match your current filters.")
     else:
+        detail_options = filtered_df["name"].tolist()
         selected_character = st.selectbox(
             "Search or choose a character",
-            df["name"].tolist()
+            detail_options
         )
-        character_info = df[df["name"] == selected_character].iloc[0]
+        character_info = filtered_df[filtered_df["name"] == selected_character].iloc[0]
         role_class = character_info["role"].lower().replace(" ", "-")
 
         c1, c2 = st.columns([1, 1])
