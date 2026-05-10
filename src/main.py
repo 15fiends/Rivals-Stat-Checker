@@ -9,10 +9,17 @@ import streamlit as st
 st.set_page_config(page_title="Rivals Stat Checker", layout="wide")
 
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(APP_PATH, "data")
-IMAGES_PATH = os.path.join(DATA_PATH, "images")
-TIERLISTS_PATH = os.path.join(DATA_PATH, "tierlists.json")
-TEAM_COMPS_PATH = os.path.join(DATA_PATH, "team_comps.json")
+
+
+def get_data_path(filename: str) -> str:
+    """Returns the path to an asset file, given its filename."""
+    return os.path.join(APP_PATH, "data", filename)
+
+
+DATA_PATH = get_data_path("")
+IMAGES_PATH = get_data_path("images")
+TIERLISTS_PATH = get_data_path("tierlists.json")
+TEAM_COMPS_PATH = get_data_path("team_comps.json")
 
 
 def ensure_data_files() -> None:
