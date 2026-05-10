@@ -114,6 +114,32 @@ def show_character_header(character_name: str) -> None:
         st.subheader(character_name)
 
 
+def render_character_icon_row(character_names: list[str], size: int = 56) -> None:
+    if not character_names:
+        st.info("No characters assigned yet.")
+        return
+
+    html = "<div class='icon-row'>"
+    for name in character_names:
+        image_uri = get_image_data_uri(get_image_path(name))
+        if image_uri:
+            html += f"""
+            <div class="icon-card">
+                <img src="{image_uri}" class="mini-icon" style="width:{size}px;height:{size}px;">
+                <div class="icon-name">{name}</div>
+            </div>
+            """
+        else:
+            html += f"""
+            <div class="icon-card">
+                <div class="mini-icon missing-icon" style="width:{size}px;height:{size}px;">?</div>
+                <div class="icon-name">{name}</div>
+            </div>
+            """
+    html += "</div>"
+    st.markdown(html, unsafe_allow_html=True)
+
+
 ensure_data_files()
 
 st.markdown("""
@@ -228,10 +254,56 @@ st.markdown("""
         color: white;
     }
 
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+    .icon-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 10px;
+        margin-bottom: 10px;
     }
 
+    .icon-card {
+        width: 84px;
+        text-align: center;
+    }
+
+    .mini-icon {
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #00d4ff;
+        box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+        background: #111827;
+        display: block;
+        margin: 0 auto 6px auto;
+    }
+
+    .missing-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9fb3c8;
+        font-weight: bold;
+    }
+
+    .icon-name {
+        font-size: 12px;
+        color: #d9e4ef;
+        line-height: 1.1;
+    }
+
+    .tier-section {
+        margin-bottom: 18px;
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .tier-s { background: rgba(45, 180, 80, 0.18); border: 1px solid rgba(45, 180, 80, 0.45); }
+    .tier-a { background: rgba(123, 201, 67, 0.18); border: 1px solid rgba(123, 201, 67, 0.45); }
+    .tier-b { background: rgba(255, 196, 0, 0.16); border: 1px solid rgba(255, 196, 0, 0.38); }
+    .tier-c { background: rgba(255, 136, 0, 0.16); border: 1px solid rgba(255, 136, 0, 0.38); }
+    .tier-d { background: rgba(255, 74, 74, 0.16); border: 1px solid rgba(255, 74, 74, 0.38); }
+
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
     .stTabs [data-baseweb="tab"] {
         background-color: rgba(20, 30, 46, 0.92);
         border-radius: 12px 12px 0 0;
@@ -353,7 +425,7 @@ tabs = st.tabs(["Overview", "Details", "Comparison", "Tier Lists", "Team Comps"]
 with tabs[0]:
     st.markdown("## How To Use")
     st.write("Use the sidebar filters to narrow the roster. Then browse characters in Details, compare two heroes in Comparison, build custom rankings in Tier Lists, and save six-character squads in Team Comps.")
-    st.write("Your tier lists and team comps are saved to local JSON files so they load again when you return.")
+    st.write("Tier lists and team comps save to local JSON files and can be loaded again later.")
 
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -436,7 +508,7 @@ with tabs[2]:
 
 with tabs[3]:
     st.markdown("## Tier Lists")
-    st.write("Build a tier list, then save it and load it later.")
+    st.write("Build a tier list, save it, and load it later. Saved lists now appear in the dropdown immediately after saving.")
 
     tier_prefix = st.text_input(
         "Tier list title",
@@ -444,6 +516,7 @@ with tabs[3]:
     )
     st.session_state.current_tierlist_name = f"{tier_prefix.strip() or 'My'} Tier List"
 
+    tierlists_store = load_json(TIERLISTS_PATH)
     saved_tierlist_name = st.selectbox("Saved tier lists", ["None"] + sorted(tierlists_store.keys()))
 
     a1, a2, a3, a4 = st.columns(4)
@@ -462,6 +535,7 @@ with tabs[3]:
             tierlists_store[st.session_state.current_tierlist_name] = st.session_state.current_tierlist_data
             save_json(TIERLISTS_PATH, tierlists_store)
             st.success("Tier list saved.")
+            st.rerun()
     with a4:
         if st.button("Delete Tier List"):
             if st.session_state.current_tierlist_name in tierlists_store:
@@ -481,24 +555,29 @@ with tabs[3]:
         st.session_state.current_tierlist_data = current_tierlist
         st.rerun()
 
-    tier_summary_rows = []
-    for tier_name in ["S", "A", "B", "C", "D"]:
-        tier_summary_rows.append(
-            {
-                "Tier": tier_name,
-                "Characters": ", ".join(current_tierlist[tier_name]) if current_tierlist[tier_name] else "None"
-            }
-        )
+    st.markdown("<div class='tier-section tier-s'><h3>S Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["S"], size=58)
 
-    st.dataframe(pd.DataFrame(tier_summary_rows), use_container_width=True, hide_index=True)
+    st.markdown("<div class='tier-section tier-a'><h3>A Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["A"], size=58)
+
+    st.markdown("<div class='tier-section tier-b'><h3>B Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["B"], size=58)
+
+    st.markdown("<div class='tier-section tier-c'><h3>C Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["C"], size=58)
+
+    st.markdown("<div class='tier-section tier-d'><h3>D Rank</h3></div>", unsafe_allow_html=True)
+    render_character_icon_row(current_tierlist["D"], size=58)
 
 with tabs[4]:
     st.markdown("## Team Comps")
-    st.write("Build a team of 6, then save it and load it later.")
+    st.write("Build a team of 6, save it, and load it later. Saved comps now appear in the dropdown immediately after saving.")
 
     team_name = st.text_input("Team comp name", value=st.session_state.current_team_name)
     st.session_state.current_team_name = team_name.strip() or "My Team Comp"
 
+    team_comps_store = load_json(TEAM_COMPS_PATH)
     saved_comp_name = st.selectbox("Saved team comps", ["None"] + sorted(team_comps_store.keys()))
 
     b1, b2, b3, b4 = st.columns(4)
@@ -517,6 +596,7 @@ with tabs[4]:
             team_comps_store[st.session_state.current_team_name] = st.session_state.current_team_data
             save_json(TEAM_COMPS_PATH, team_comps_store)
             st.success("Team comp saved.")
+            st.rerun()
     with b4:
         if st.button("Delete Team Comp"):
             if st.session_state.current_team_name in team_comps_store:
@@ -545,8 +625,5 @@ with tabs[4]:
 
     st.session_state.current_team_data = current_team
 
-    preview_rows = []
-    for i, character in enumerate(current_team):
-        preview_rows.append({"Slot": i + 1, "Character": character if character else "Empty"})
-
-    st.dataframe(pd.DataFrame(preview_rows), use_container_width=True, hide_index=True)
+    st.markdown("### Current Team Preview")
+    render_character_icon_row([name for name in current_team if name], size=64)
