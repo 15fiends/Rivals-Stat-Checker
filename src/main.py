@@ -1,18 +1,44 @@
-import os
 import base64
-import streamlit as st
+import json
+import os
+from html import escape
+
 import pandas as pd
+import streamlit as st
 
 st.set_page_config(page_title="Rivals Stat Checker", layout="wide")
 
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(APP_PATH, "data")
+IMAGES_PATH = os.path.join(DATA_PATH, "images")
+TIERLISTS_PATH = os.path.join(DATA_PATH, "tierlists.json")
+TEAM_COMPS_PATH = os.path.join(DATA_PATH, "team_comps.json")
 
 
-def get_image_path(filename):
-    return os.path.join(APP_PATH, "data", "images", filename)
+def ensure_data_files() -> None:
+    os.makedirs(DATA_PATH, exist_ok=True)
+    os.makedirs(IMAGES_PATH, exist_ok=True)
+
+    if not os.path.exists(TIERLISTS_PATH):
+        with open(TIERLISTS_PATH, "w", encoding="utf-8") as file:
+            json.dump({}, file, indent=2)
+
+    if not os.path.exists(TEAM_COMPS_PATH):
+        with open(TEAM_COMPS_PATH, "w", encoding="utf-8") as file:
+            json.dump({}, file, indent=2)
 
 
-def get_image_filename(character_name):
+def load_json(path: str) -> dict:
+    with open(path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def save_json(path: str, data: dict) -> None:
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=2)
+
+
+def get_image_filename(character_name: str) -> str:
     return (
         character_name.lower()
         .replace("-", "")
@@ -23,17 +49,94 @@ def get_image_filename(character_name):
     )
 
 
-def get_image_data_uri(image_path):
+def get_image_path(character_name: str) -> str:
+    return os.path.join(IMAGES_PATH, get_image_filename(character_name))
+
+
+@st.cache_data(show_spinner=False)
+def get_image_data_uri(image_path: str) -> str | None:
     if not os.path.exists(image_path):
         return None
     with open(image_path, "rb") as image_file:
-        encoded = base64.b64encode(image_file.read()).decode()
+        encoded = base64.b64encode(image_file.read()).decode("utf-8")
     return f"data:image/png;base64,{encoded}"
 
 
+def render_character_icon_row(character_names: list[str], size: int = 56) -> None:
+    if not character_names:
+        st.markdown("<div class='empty-dropzone'>No characters assigned yet.</div>", unsafe_allow_html=True)
+        return
+
+    html = "<div class='icon-row'>"
+    for name in character_names:
+        image_uri = get_image_data_uri(get_image_path(name))
+        safe_name = escape(name)
+        if image_uri:
+            html += f"""
+            <div class="icon-card">
+                <img src="{image_uri}" class="mini-icon" style="width:{size}px;height:{size}px;">
+                <div class="icon-name">{safe_name}</div>
+            </div>
+            """
+        else:
+            html += f"""
+            <div class="icon-card">
+                <div class="mini-icon missing-icon" style="width:{size}px;height:{size}px;">?</div>
+                <div class="icon-name">{safe_name}</div>
+            </div>
+            """
+    html += "</div>"
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def empty_tierlist() -> dict[str, list[str]]:
+    return {"S": [], "A": [], "B": [], "C": [], "D": []}
+
+
+def sanitize_tierlist(tierlist: dict) -> dict[str, list[str]]:
+    clean = empty_tierlist()
+    for tier in clean:
+        clean[tier] = list(tierlist.get(tier, []))
+    return clean
+
+
+def remove_character_from_tierlist(tierlist: dict[str, list[str]], character_name: str) -> None:
+    for tier in tierlist:
+        if character_name in tierlist[tier]:
+            tierlist[tier].remove(character_name)
+
+
+def assign_character_to_tier(tierlist: dict[str, list[str]], character_name: str, tier_name: str) -> None:
+    remove_character_from_tierlist(tierlist, character_name)
+    tierlist[tier_name].append(character_name)
+
+
+def get_unassigned_characters(tierlist: dict[str, list[str]], all_characters: list[str]) -> list[str]:
+    assigned = set()
+    for tier_chars in tierlist.values():
+        assigned.update(tier_chars)
+    return [name for name in all_characters if name not in assigned]
+
+
+def empty_team_comp() -> list[str]:
+    return ["", "", "", "", "", ""]
+
+
+def sanitize_team_comp(team_comp: list[str]) -> list[str]:
+    clean = empty_team_comp()
+    for index in range(min(6, len(team_comp))):
+        clean[index] = team_comp[index]
+    return clean
+
+
+def role_class(role_name: str) -> str:
+    return role_name.lower().replace(" ", "-")
+
+
+ensure_data_files()
+
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
-
 <style>
     .stApp {
         background:
@@ -95,27 +198,9 @@ st.markdown("""
         box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
     }
 
-    .stat-label {
-        color: #9cb3cd;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .stat-value {
-        color: #ffffff;
-        font-size: 28px;
-        font-weight: 700;
-        margin-top: 4px;
-    }
-
-    .section-title {
-        color: #ffffff;
-        font-family: 'Orbitron', sans-serif;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-top: 8px;
-        margin-bottom: 10px;
+    .small-note {
+        color: #a0afc2;
+        font-size: 15px;
     }
 
     .role-pill {
@@ -152,42 +237,6 @@ st.markdown("""
         border: 1px solid rgba(182, 107, 255, 0.4);
     }
 
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        background-color: rgba(20, 30, 46, 0.92);
-        border-radius: 12px 12px 0 0;
-        padding: 10px 18px;
-        color: #d9e4ef;
-        font-family: 'Orbitron', sans-serif;
-    }
-
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #ff4a4a, #00d4ff) !important;
-        color: white !important;
-    }
-
-    .stSelectbox label, .stTextInput label, .stSlider label {
-        color: #d8e2ee !important;
-        font-weight: 700;
-        letter-spacing: 0.4px;
-    }
-
-    .small-note {
-        color: #a0afc2;
-        font-size: 15px;
-    }
-
-    .winner-box {
-        background: linear-gradient(135deg, rgba(0, 212, 255, 0.18), rgba(255, 74, 74, 0.12));
-        border: 1px solid rgba(0, 212, 255, 0.35);
-        border-radius: 14px;
-        padding: 14px;
-        margin-bottom: 12px;
-    }
-
     .profile-wrap {
         display: flex;
         align-items: center;
@@ -210,6 +259,82 @@ st.markdown("""
         font-size: 28px;
         font-weight: 700;
         color: white;
+    }
+
+    .icon-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    .icon-card {
+        width: 78px;
+        text-align: center;
+    }
+
+    .mini-icon {
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #00d4ff;
+        box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+        background: #111827;
+        display: block;
+        margin: 0 auto 6px auto;
+    }
+
+    .missing-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9fb3c8;
+        font-weight: bold;
+    }
+
+    .icon-name {
+        font-size: 12px;
+        color: #d9e4ef;
+        line-height: 1.1;
+    }
+
+    .tier-row {
+        border-radius: 16px;
+        padding: 14px;
+        margin-bottom: 12px;
+    }
+
+    .tier-s { background: rgba(45, 180, 80, 0.18); border: 1px solid rgba(45, 180, 80, 0.45); }
+    .tier-a { background: rgba(123, 201, 67, 0.18); border: 1px solid rgba(123, 201, 67, 0.45); }
+    .tier-b { background: rgba(255, 196, 0, 0.16); border: 1px solid rgba(255, 196, 0, 0.38); }
+    .tier-c { background: rgba(255, 136, 0, 0.16); border: 1px solid rgba(255, 136, 0, 0.38); }
+    .tier-d { background: rgba(255, 74, 74, 0.16); border: 1px solid rgba(255, 74, 74, 0.38); }
+
+    .tier-label {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: white;
+    }
+
+    .empty-dropzone {
+        color: #9fb3c8;
+        padding: 10px 0;
+    }
+
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .stTabs [data-baseweb="tab"] {
+        background-color: rgba(20, 30, 46, 0.92);
+        border-radius: 12px 12px 0 0;
+        padding: 10px 18px;
+        color: #d9e4ef;
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #ff4a4a, #00d4ff) !important;
+        color: white !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -262,36 +387,44 @@ data = [
     {"name": "Venom", "role": "Vanguard", "health": 675, "mobility": 4, "damage": 4, "difficulty": 3, "range_type": "Melee"},
     {"name": "White Fox", "role": "Strategist", "health": 275, "mobility": 3, "damage": 2, "difficulty": 3, "range_type": "Ranged"},
     {"name": "Winter Soldier", "role": "Duelist", "health": 275, "mobility": 3, "damage": 5, "difficulty": 3, "range_type": "Mid Range"},
-    {"name": "Wolverine", "role": "Duelist", "health": 350, "mobility": 4, "damage": 5, "difficulty": 4, "range_type": "Melee"}
+    {"name": "Wolverine", "role": "Duelist", "health": 350, "mobility": 4, "damage": 5, "difficulty": 4, "range_type": "Melee"},
 ]
 
 full_df = pd.DataFrame(data)
-filtered_df = full_df.copy()
+all_character_names = full_df["name"].tolist()
 
-logo_path = get_image_path("marvel_rivals_logo.png")
+if "current_tierlist_name" not in st.session_state:
+    st.session_state.current_tierlist_name = "My Tier List"
+if "current_tierlist_data" not in st.session_state:
+    st.session_state.current_tierlist_data = empty_tierlist()
+if "current_team_name" not in st.session_state:
+    st.session_state.current_team_name = "My Team Comp"
+if "current_team_data" not in st.session_state:
+    st.session_state.current_team_data = empty_team_comp()
+
+tierlists_store = load_json(TIERLISTS_PATH)
+team_comps_store = load_json(TEAM_COMPS_PATH)
+
+logo_path = os.path.join(IMAGES_PATH, "marvel_rivals_logo.png")
 
 st.markdown("<div class='hero-box'>", unsafe_allow_html=True)
-
 if os.path.exists(logo_path):
-    logo_col1, logo_col2 = st.columns([1.2, 1])
-    with logo_col1:
+    col1, col2 = st.columns([1.2, 1])
+    with col1:
         st.image(logo_path, use_container_width=True)
-    with logo_col2:
+    with col2:
         st.markdown("<div class='checker-title'>Stat Checker</div>", unsafe_allow_html=True)
         st.markdown(
-            "<div class='hero-subtitle'>Explore the roster, compare combat stats, and break down character strengths with a game-inspired dashboard.</div>",
+            "<div class='hero-subtitle'>Explore the roster, compare heroes, build tier lists, and save team comps.</div>",
             unsafe_allow_html=True
         )
 else:
     st.markdown("<div class='checker-title'>Marvel Rivals Stat Checker</div>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='hero-subtitle'>Explore the roster, compare combat stats, and break down character strengths with a game-inspired dashboard.</div>",
-        unsafe_allow_html=True
-    )
-
 st.markdown("</div>", unsafe_allow_html=True)
 
 st.caption("Roles and health are based on current Marvel Rivals hero data. Mobility, damage, difficulty, and range labels are app comparison ratings for browsing.")
+
+filtered_df = full_df.copy()
 
 st.sidebar.header("Filters")
 role_filter = st.sidebar.selectbox("Role", ["All"] + sorted(full_df["role"].unique().tolist()))
@@ -314,166 +447,99 @@ filtered_df = filtered_df[filtered_df["damage"] >= min_damage]
 filtered_df = filtered_df[filtered_df["mobility"] >= min_mobility]
 filtered_df = filtered_df[filtered_df["difficulty"] <= max_difficulty]
 
-tab1, tab2, tab3 = st.tabs(["Overview", "Details", "Comparison"])
+tabs = st.tabs(["Overview", "Details", "Comparison", "Tier Lists", "Team Comps"])
 
-with tab1:
-    st.markdown("<h2 class='section-title'>Roster Overview</h2>", unsafe_allow_html=True)
+with tabs[0]:
+    st.markdown("## How To Use")
+    st.markdown("""
+- Use the **sidebar filters** to narrow the roster by role, name, health, damage, mobility, or difficulty.
+- Use **Details** to inspect one character and see their stat chart and image.
+- Use **Comparison** to compare two characters side by side with images and stat bars.
+- Use **Tier Lists** to build and save different rankings like `Damage Tier List` or `Beginner Tier List`.
+- Use **Team Comps** to build and save teams of 6 characters.
 
-    m1, m2, m3 = st.columns(3)
+This app saves tier lists and team comps to JSON files, so they can be loaded again later.
+    """)
 
-    with m1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="stat-label">Characters Shown</div>
-            <div class="stat-value">{len(filtered_df)}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with m2:
+    metric1, metric2, metric3 = st.columns(3)
+    with metric1:
+        st.markdown(f"<div class='metric-card'><div>Characters Shown</div><h2>{len(filtered_df)}</h2></div>", unsafe_allow_html=True)
+    with metric2:
         avg_health = round(filtered_df["health"].mean(), 1) if not filtered_df.empty else 0
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="stat-label">Average Health</div>
-            <div class="stat-value">{avg_health}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with m3:
+        st.markdown(f"<div class='metric-card'><div>Average Health</div><h2>{avg_health}</h2></div>", unsafe_allow_html=True)
+    with metric3:
         avg_damage = round(filtered_df["damage"].mean(), 1) if not filtered_df.empty else 0
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="stat-label">Average Damage</div>
-            <div class="stat-value">{avg_damage}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    sort_col1, sort_col2 = st.columns(2)
-    with sort_col1:
-        sort_stat = st.selectbox(
-            "Sort roster by",
-            ["name", "role", "health", "mobility", "damage", "difficulty"]
-        )
-    with sort_col2:
-        sort_direction = st.selectbox(
-            "Sort direction",
-            ["Descending ↓", "Ascending ↑"]
-        )
-
-    ascending = sort_direction == "Ascending ↑"
-    sorted_df = filtered_df.sort_values(by=sort_stat, ascending=ascending).reset_index(drop=True)
-
-    st.markdown("<div class='small-note'>Use the sorting controls to quickly find the strongest characters in each stat category.</div>", unsafe_allow_html=True)
-
-    if sorted_df.empty:
-        st.warning("No characters match your current filters.")
-    else:
-        st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-        st.dataframe(sorted_df, use_container_width=True, hide_index=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        role_counts = sorted_df["role"].value_counts().rename_axis("Role").reset_index(name="Count")
-        st.markdown("<h2 class='section-title'>Role Distribution</h2>", unsafe_allow_html=True)
-        st.bar_chart(role_counts.set_index("Role"))
-
-with tab2:
-    st.markdown("<h2 class='section-title'>Character Details</h2>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><div>Average Damage</div><h2>{avg_damage}</h2></div>", unsafe_allow_html=True)
 
     if filtered_df.empty:
         st.warning("No characters match your current filters.")
     else:
-        detail_options = filtered_df["name"].tolist()
-        selected_character = st.selectbox("Search or choose a character", detail_options)
+        st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+
+with tabs[1]:
+    st.markdown("## Character Details")
+
+    if filtered_df.empty:
+        st.warning("No characters match your current filters.")
+    else:
+        selected_character = st.selectbox("Choose a character", filtered_df["name"].tolist())
         character_info = filtered_df[filtered_df["name"] == selected_character].iloc[0]
-        role_class = character_info["role"].lower().replace(" ", "-")
+        image_uri = get_image_data_uri(get_image_path(selected_character))
 
-        image_filename = get_image_filename(character_info["name"])
-        image_path = get_image_path(image_filename)
-        image_data_uri = get_image_data_uri(image_path)
-
-        if image_data_uri:
+        if image_uri:
             st.markdown(
                 f"""
                 <div class="profile-wrap">
-                    <img src="{image_data_uri}" class="profile-image">
-                    <div class="profile-name">{character_info['name']}</div>
+                    <img src="{image_uri}" class="profile-image">
+                    <div class="profile-name">{escape(selected_character)}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
-        else:
-            st.subheader(character_info["name"])
 
-        c1, c2 = st.columns([1, 1])
+        left_col, right_col = st.columns(2)
+        with left_col:
+            st.markdown(
+                f"<div class='custom-card'><div>Role</div><div class='role-pill {role_class(character_info['role'])}'>{character_info['role']}</div><br><div>Range Type</div><h3>{character_info['range_type']}</h3></div>",
+                unsafe_allow_html=True
+            )
+        with right_col:
+            chart_df = pd.DataFrame(
+                {
+                    "Stat": ["Health", "Mobility", "Damage", "Difficulty"],
+                    "Value": [
+                        character_info["health"],
+                        character_info["mobility"],
+                        character_info["damage"],
+                        character_info["difficulty"],
+                    ],
+                }
+            )
+            st.bar_chart(chart_df.set_index("Stat"))
 
-        with c1:
-            st.markdown(f"""
-            <div class="custom-card">
-                <div class="stat-label">Role</div>
-                <div class="role-pill {role_class}">{character_info['role']}</div>
-                <br><br>
-                <div class="stat-label">Range Type</div>
-                <div class="stat-value">{character_info['range_type']}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with c2:
-            st.markdown(f"""
-            <div class="custom-card">
-                <div class="stat-label">Health</div>
-                <div class="stat-value">{character_info['health']}</div>
-                <br>
-                <div class="stat-label">Mobility Rating</div>
-                <div class="stat-value">{character_info['mobility']}</div>
-                <br>
-                <div class="stat-label">Damage Rating</div>
-                <div class="stat-value">{character_info['damage']}</div>
-                <br>
-                <div class="stat-label">Difficulty Rating</div>
-                <div class="stat-value">{character_info['difficulty']}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("<div class='small-note'>Stat guide: Health is current roster data. Mobility, damage, and difficulty are app comparison ratings for easier browsing.</div>", unsafe_allow_html=True)
-
-        chart_df = pd.DataFrame(
-            {
-                "Stat": ["Health", "Mobility", "Damage", "Difficulty"],
-                "Value": [
-                    character_info["health"],
-                    character_info["mobility"],
-                    character_info["damage"],
-                    character_info["difficulty"]
-                ]
-            }
-        )
-        st.bar_chart(chart_df.set_index("Stat"))
-
-with tab3:
-    st.markdown("<h2 class='section-title'>Side-by-Side Comparison</h2>", unsafe_allow_html=True)
+with tabs[2]:
+    st.markdown("## Character Comparison")
 
     compare_col1, compare_col2 = st.columns(2)
-
     with compare_col1:
-        compare_1 = st.selectbox("First character", full_df["name"].tolist(), key="compare_1")
-
+        compare_1 = st.selectbox("First character", filtered_df["name"].tolist() if not filtered_df.empty else all_character_names, key="compare_1")
     with compare_col2:
-        compare_2 = st.selectbox("Second character", full_df["name"].tolist(), key="compare_2")
+        compare_2 = st.selectbox("Second character", filtered_df["name"].tolist() if not filtered_df.empty else all_character_names, key="compare_2")
 
     first_row = full_df[full_df["name"] == compare_1].iloc[0]
     second_row = full_df[full_df["name"] == compare_2].iloc[0]
 
-    image_1 = get_image_data_uri(get_image_path(get_image_filename(compare_1)))
-    image_2 = get_image_data_uri(get_image_path(get_image_filename(compare_2)))
+    image_1 = get_image_data_uri(get_image_path(compare_1))
+    image_2 = get_image_data_uri(get_image_path(compare_2))
 
-    img_col1, img_col2 = st.columns(2)
-
-    with img_col1:
+    top1, top2 = st.columns(2)
+    with top1:
         if image_1:
             st.markdown(
                 f"""
                 <div class="profile-wrap">
                     <img src="{image_1}" class="profile-image">
-                    <div class="profile-name">{compare_1}</div>
+                    <div class="profile-name">{escape(compare_1)}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -481,13 +547,13 @@ with tab3:
         else:
             st.subheader(compare_1)
 
-    with img_col2:
+    with top2:
         if image_2:
             st.markdown(
                 f"""
                 <div class="profile-wrap">
                     <img src="{image_2}" class="profile-image">
-                    <div class="profile-name">{compare_2}</div>
+                    <div class="profile-name">{escape(compare_2)}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -496,42 +562,146 @@ with tab3:
             st.subheader(compare_2)
 
     comparison_rows = []
-    winner_rows = []
-
     for stat_name in ["health", "mobility", "damage", "difficulty"]:
-        first_value = first_row[stat_name]
-        second_value = second_row[stat_name]
-
         comparison_rows.append(
             {
                 "Stat": stat_name.title(),
-                compare_1: first_value,
-                compare_2: second_value
+                compare_1: first_row[stat_name],
+                compare_2: second_row[stat_name],
             }
         )
 
-        if first_value > second_value:
-            winner = compare_1
-        elif second_value > first_value:
-            winner = compare_2
-        else:
-            winner = "Tie"
+    st.bar_chart(pd.DataFrame(comparison_rows).set_index("Stat"))
 
-        winner_rows.append({"Stat": stat_name.title(), "Winner": winner})
+with tabs[3]:
+    st.markdown("## Tier Lists")
 
-    comparison_chart_df = pd.DataFrame(comparison_rows).set_index("Stat")
-    winners_df = pd.DataFrame(winner_rows)
+    tier_col1, tier_col2 = st.columns([2, 1])
+    with tier_col1:
+        tier_prefix = st.text_input(
+            "Tier list title",
+            value=st.session_state.current_tierlist_name.replace(" Tier List", "")
+        )
+        st.session_state.current_tierlist_name = f"{tier_prefix.strip() or 'My'} Tier List"
 
-    st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-    st.bar_chart(comparison_chart_df)
-    st.markdown("</div>", unsafe_allow_html=True)
+    with tier_col2:
+        selected_saved_tierlist = st.selectbox("Load saved tier list", ["None"] + sorted(tierlists_store.keys()))
 
-    st.markdown("<div class='winner-box'>", unsafe_allow_html=True)
-    st.subheader("Stat Winners")
-    st.dataframe(winners_df, use_container_width=True, hide_index=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    action1, action2, action3, action4 = st.columns(4)
+    with action1:
+        if st.button("Create New Tier List", use_container_width=True):
+            st.session_state.current_tierlist_name = "My Tier List"
+            st.session_state.current_tierlist_data = empty_tierlist()
+            st.rerun()
+    with action2:
+        if st.button("Load Tier List", use_container_width=True) and selected_saved_tierlist != "None":
+            st.session_state.current_tierlist_name = selected_saved_tierlist
+            st.session_state.current_tierlist_data = sanitize_tierlist(tierlists_store[selected_saved_tierlist])
+            st.rerun()
+    with action3:
+        if st.button("Save Tier List", use_container_width=True):
+            tierlists_store[st.session_state.current_tierlist_name] = st.session_state.current_tierlist_data
+            save_json(TIERLISTS_PATH, tierlists_store)
+            st.success("Tier list saved.")
+    with action4:
+        if st.button("Delete Tier List", use_container_width=True):
+            if st.session_state.current_tierlist_name in tierlists_store:
+                tierlists_store.pop(st.session_state.current_tierlist_name)
+                save_json(TIERLISTS_PATH, tierlists_store)
+                st.session_state.current_tierlist_data = empty_tierlist()
+                st.success("Tier list deleted.")
+                st.rerun()
 
-    compare_table = full_df[full_df["name"].isin([compare_1, compare_2])]
-    st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-    st.dataframe(compare_table, use_container_width=True, hide_index=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    current_tierlist = sanitize_tierlist(st.session_state.current_tierlist_data)
+    st.session_state.current_tierlist_data = current_tierlist
+
+    assign1, assign2 = st.columns(2)
+    with assign1:
+        assign_character = st.selectbox("Character", all_character_names, key="tier_assign_character")
+    with assign2:
+        assign_tier = st.selectbox("Rank", ["S", "A", "B", "C", "D"], key="tier_assign_rank")
+
+    if st.button("Assign Character To Rank"):
+        assign_character_to_tier(current_tierlist, assign_character, assign_tier)
+        st.session_state.current_tierlist_data = current_tierlist
+        st.rerun()
+
+    st.markdown("### Unassigned Characters")
+    render_character_icon_row(get_unassigned_characters(current_tierlist, all_character_names), size=52)
+
+    for tier_name, tier_class in [("S", "tier-s"), ("A", "tier-a"), ("B", "tier-b"), ("C", "tier-c"), ("D", "tier-d")]:
+        st.markdown(f"<div class='tier-row {tier_class}'><div class='tier-label'>{tier_name} Rank</div></div>", unsafe_allow_html=True)
+        render_character_icon_row(current_tierlist[tier_name], size=58)
+
+with tabs[4]:
+    st.markdown("## Team Comps")
+
+    comp_col1, comp_col2 = st.columns([2, 1])
+    with comp_col1:
+        team_name = st.text_input("Team comp name", value=st.session_state.current_team_name)
+        st.session_state.current_team_name = team_name.strip() or "My Team Comp"
+    with comp_col2:
+        selected_saved_comp = st.selectbox("Load saved comp", ["None"] + sorted(team_comps_store.keys()))
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        if st.button("Create New Team Comp", use_container_width=True):
+            st.session_state.current_team_name = "My Team Comp"
+            st.session_state.current_team_data = empty_team_comp()
+            st.rerun()
+    with c2:
+        if st.button("Load Team Comp", use_container_width=True) and selected_saved_comp != "None":
+            st.session_state.current_team_name = selected_saved_comp
+            st.session_state.current_team_data = sanitize_team_comp(team_comps_store[selected_saved_comp])
+            st.rerun()
+    with c3:
+        if st.button("Save Team Comp", use_container_width=True):
+            team_comps_store[st.session_state.current_team_name] = st.session_state.current_team_data
+            save_json(TEAM_COMPS_PATH, team_comps_store)
+            st.success("Team comp saved.")
+    with c4:
+        if st.button("Delete Team Comp", use_container_width=True):
+            if st.session_state.current_team_name in team_comps_store:
+                team_comps_store.pop(st.session_state.current_team_name)
+                save_json(TEAM_COMPS_PATH, team_comps_store)
+                st.session_state.current_team_data = empty_team_comp()
+                st.success("Team comp deleted.")
+                st.rerun()
+
+    current_team = sanitize_team_comp(st.session_state.current_team_data)
+
+    slot_cols = st.columns(3)
+    slot_cols_2 = st.columns(3)
+    all_slots = slot_cols + slot_cols_2
+
+    team_options = [""] + all_character_names
+
+    for i, col in enumerate(all_slots):
+        with col:
+            selected = st.selectbox(
+                f"Slot {i + 1}",
+                team_options,
+                index=team_options.index(current_team[i]) if current_team[i] in team_options else 0,
+                key=f"team_slot_{i}"
+            )
+            current_team[i] = selected
+
+            if selected:
+                image_uri = get_image_data_uri(get_image_path(selected))
+                if image_uri:
+                    st.markdown(
+                        f"""
+                        <div class="profile-wrap">
+                            <img src="{image_uri}" class="profile-image">
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                st.write(selected)
+            else:
+                st.write("Empty slot")
+
+    st.session_state.current_team_data = current_team
+
+    st.markdown("### Current Team Preview")
+    render_character_icon_row([name for name in current_team if name], size=58)
