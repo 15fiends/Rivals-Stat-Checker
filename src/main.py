@@ -116,6 +116,12 @@ st.markdown("""
         border: 1px solid rgba(255, 196, 0, 0.35);
     }
 
+    .varied {
+        background: rgba(186, 104, 200, 0.14);
+        color: #e1b7ff;
+        border: 1px solid rgba(186, 104, 200, 0.4);
+    }
+
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
     }
@@ -155,186 +161,54 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 data = [
-    {
-        "name": "Iron Man",
-        "role": "Duelist",
-        "health": 250,
-        "mobility": 5,
-        "damage": 4,
-        "difficulty": 3,
-        "range_type": "Ranged",
-        "strengths": "Strong poke damage, air mobility, good pressure from range.",
-        "weaknesses": "Can be punished by accurate ranged enemies and focused dive.",
-        "playstyle": "Mobile ranged duelist who constantly repositions and pokes."
-    },
-    {
-        "name": "Hulk",
-        "role": "Vanguard",
-        "health": 650,
-        "mobility": 2,
-        "damage": 4,
-        "difficulty": 2,
-        "range_type": "Melee",
-        "strengths": "Huge health pool, frontline pressure, space creation.",
-        "weaknesses": "Limited range and easier to kite than faster heroes.",
-        "playstyle": "Tanky initiator who absorbs pressure and creates openings."
-    },
-    {
-        "name": "Loki",
-        "role": "Strategist",
-        "health": 275,
-        "mobility": 3,
-        "damage": 3,
-        "difficulty": 4,
-        "range_type": "Ranged",
-        "strengths": "Utility, trickery, disruption, and team support value.",
-        "weaknesses": "Harder to master and less direct damage than pure duelists.",
-        "playstyle": "Utility-focused strategist who thrives on confusion and setup."
-    },
-    {
-        "name": "Spider-Man",
-        "role": "Duelist",
-        "health": 250,
-        "mobility": 5,
-        "damage": 4,
-        "difficulty": 5,
-        "range_type": "Melee",
-        "strengths": "Elite mobility, flanking power, fast eliminations.",
-        "weaknesses": "High skill requirement and vulnerable when overcommitting.",
-        "playstyle": "Fast assassin-style duelist who dives priority targets."
-    },
-    {
-        "name": "Doctor Strange",
-        "role": "Strategist",
-        "health": 300,
-        "mobility": 2,
-        "damage": 3,
-        "difficulty": 4,
-        "range_type": "Ranged",
-        "strengths": "Team control, utility, and strong zone presence.",
-        "weaknesses": "Less mobile and relies on positioning and timing.",
-        "playstyle": "Control-heavy backline strategist focused on utility."
-    },
-    {
-        "name": "Scarlet Witch",
-        "role": "Duelist",
-        "health": 250,
-        "mobility": 3,
-        "damage": 5,
-        "difficulty": 4,
-        "range_type": "Mid Range",
-        "strengths": "Very high burst damage and strong area pressure.",
-        "weaknesses": "Can be punished if mobility tools are limited.",
-        "playstyle": "High-damage caster duelist with strong burst windows."
-    },
-    {
-        "name": "Magneto",
-        "role": "Vanguard",
-        "health": 500,
-        "mobility": 2,
-        "damage": 4,
-        "difficulty": 3,
-        "range_type": "Mid Range",
-        "strengths": "Durable frontline presence with solid damage output.",
-        "weaknesses": "Slower tempo and not as flexible in fast chase situations.",
-        "playstyle": "Balanced tank-damage hybrid with steady pressure."
-    },
-    {
-        "name": "Storm",
-        "role": "Strategist",
-        "health": 275,
-        "mobility": 4,
-        "damage": 3,
-        "difficulty": 3,
-        "range_type": "Ranged",
-        "strengths": "Good mobility, utility, and flexible battlefield control.",
-        "weaknesses": "Does not dominate single stat categories as hard as others.",
-        "playstyle": "Flexible ranged strategist with mobility and team value."
-    },
-    {
-        "name": "Black Panther",
-        "role": "Duelist",
-        "health": 300,
-        "mobility": 5,
-        "damage": 4,
-        "difficulty": 4,
-        "range_type": "Melee",
-        "strengths": "High mobility, good dueling, strong chase potential.",
-        "weaknesses": "Needs clean execution to get full value in fights.",
-        "playstyle": "Aggressive melee duelist who excels at engaging and chasing."
-    },
-    {
-        "name": "Rocket Raccoon",
-        "role": "Strategist",
-        "health": 250,
-        "mobility": 4,
-        "damage": 2,
-        "difficulty": 3,
-        "range_type": "Ranged",
-        "strengths": "Utility and movement make him slippery and useful.",
-        "weaknesses": "Lower direct damage output than most duelists.",
-        "playstyle": "Annoying utility support who chips away and repositions."
-    },
-    {
-        "name": "Groot",
-        "role": "Vanguard",
-        "health": 700,
-        "mobility": 1,
-        "damage": 3,
-        "difficulty": 2,
-        "range_type": "Melee",
-        "strengths": "Highest durability, strong presence, blocks space well.",
-        "weaknesses": "Very low mobility and can struggle against kiting.",
-        "playstyle": "Pure frontline anchor who protects space for the team."
-    },
-    {
-        "name": "Punisher",
-        "role": "Duelist",
-        "health": 275,
-        "mobility": 2,
-        "damage": 5,
-        "difficulty": 2,
-        "range_type": "Ranged",
-        "strengths": "Heavy damage output and straightforward pressure.",
-        "weaknesses": "Less mobile than many top duelists.",
-        "playstyle": "Direct ranged damage dealer with simple but effective pressure."
-    },
-    {
-        "name": "Mantis",
-        "role": "Strategist",
-        "health": 250,
-        "mobility": 3,
-        "damage": 2,
-        "difficulty": 2,
-        "range_type": "Ranged",
-        "strengths": "Support value, easier learning curve, solid team utility.",
-        "weaknesses": "Low direct damage and limited carry threat alone.",
-        "playstyle": "Accessible support strategist focused on helping teammates."
-    },
-    {
-        "name": "Venom",
-        "role": "Vanguard",
-        "health": 600,
-        "mobility": 4,
-        "damage": 4,
-        "difficulty": 3,
-        "range_type": "Melee",
-        "strengths": "Tankiness plus good mobility makes him threatening.",
-        "weaknesses": "Can be focused down if engages are poorly timed.",
-        "playstyle": "Aggressive tank who mixes durability with dive pressure."
-    },
-    {
-        "name": "Star-Lord",
-        "role": "Duelist",
-        "health": 250,
-        "mobility": 4,
-        "damage": 4,
-        "difficulty": 3,
-        "range_type": "Ranged",
-        "strengths": "Balanced mobility and ranged damage.",
-        "weaknesses": "Less specialized than extreme damage or tank picks.",
-        "playstyle": "Flexible ranged duelist with all-around solid tools."
-    }
+    {"name": "Adam Warlock", "role": "Strategist", "health": 250, "mobility": 2, "damage": 3, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Angela", "role": "Vanguard", "health": 550, "mobility": 4, "damage": 4, "difficulty": 3, "range_type": "Melee"},
+    {"name": "Black Panther", "role": "Duelist", "health": 275, "mobility": 5, "damage": 4, "difficulty": 4, "range_type": "Melee"},
+    {"name": "Black Widow", "role": "Duelist", "health": 250, "mobility": 3, "damage": 5, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Blade", "role": "Duelist", "health": 350, "mobility": 4, "damage": 5, "difficulty": 4, "range_type": "Melee"},
+    {"name": "Captain America", "role": "Vanguard", "health": 575, "mobility": 3, "damage": 3, "difficulty": 3, "range_type": "Melee"},
+    {"name": "Cloak & Dagger", "role": "Strategist", "health": 275, "mobility": 3, "damage": 3, "difficulty": 4, "range_type": "Hybrid"},
+    {"name": "Daredevil", "role": "Duelist", "health": 325, "mobility": 5, "damage": 4, "difficulty": 4, "range_type": "Melee"},
+    {"name": "Deadpool", "role": "Varied", "health": 300, "mobility": 4, "damage": 4, "difficulty": 5, "range_type": "Hybrid"},
+    {"name": "Doctor Strange", "role": "Vanguard", "health": 675, "mobility": 2, "damage": 3, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Elsa Bloodstone", "role": "Duelist", "health": 275, "mobility": 4, "damage": 4, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Emma Frost", "role": "Vanguard", "health": 650, "mobility": 2, "damage": 4, "difficulty": 4, "range_type": "Hybrid"},
+    {"name": "Gambit", "role": "Strategist", "health": 275, "mobility": 3, "damage": 3, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Groot", "role": "Vanguard", "health": 850, "mobility": 1, "damage": 3, "difficulty": 2, "range_type": "Melee"},
+    {"name": "Hawkeye", "role": "Duelist", "health": 275, "mobility": 3, "damage": 5, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Hela", "role": "Duelist", "health": 250, "mobility": 3, "damage": 5, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Hulk", "role": "Vanguard", "health": 750, "mobility": 3, "damage": 4, "difficulty": 3, "range_type": "Melee"},
+    {"name": "Human Torch", "role": "Duelist", "health": 250, "mobility": 5, "damage": 5, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Invisible Woman", "role": "Strategist", "health": 275, "mobility": 3, "damage": 2, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Iron Fist", "role": "Duelist", "health": 300, "mobility": 5, "damage": 4, "difficulty": 4, "range_type": "Melee"},
+    {"name": "Iron Man", "role": "Duelist", "health": 250, "mobility": 5, "damage": 4, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Jeff The Land Shark", "role": "Strategist", "health": 250, "mobility": 4, "damage": 2, "difficulty": 2, "range_type": "Ranged"},
+    {"name": "Loki", "role": "Strategist", "health": 275, "mobility": 3, "damage": 3, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Luna Snow", "role": "Strategist", "health": 275, "mobility": 3, "damage": 2, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Magik", "role": "Duelist", "health": 250, "mobility": 5, "damage": 4, "difficulty": 4, "range_type": "Melee"},
+    {"name": "Magneto", "role": "Vanguard", "health": 650, "mobility": 2, "damage": 4, "difficulty": 3, "range_type": "Mid Range"},
+    {"name": "Mantis", "role": "Strategist", "health": 250, "mobility": 3, "damage": 2, "difficulty": 2, "range_type": "Ranged"},
+    {"name": "Mister Fantastic", "role": "Duelist", "health": 375, "mobility": 3, "damage": 4, "difficulty": 4, "range_type": "Hybrid"},
+    {"name": "Moon Knight", "role": "Duelist", "health": 275, "mobility": 4, "damage": 4, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Namor", "role": "Duelist", "health": 250, "mobility": 3, "damage": 4, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Peni Parker", "role": "Vanguard", "health": 650, "mobility": 2, "damage": 3, "difficulty": 3, "range_type": "Mid Range"},
+    {"name": "Phoenix", "role": "Duelist", "health": 275, "mobility": 4, "damage": 5, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Psylocke", "role": "Duelist", "health": 250, "mobility": 5, "damage": 4, "difficulty": 4, "range_type": "Hybrid"},
+    {"name": "The Punisher", "role": "Duelist", "health": 300, "mobility": 2, "damage": 5, "difficulty": 2, "range_type": "Ranged"},
+    {"name": "The Thing", "role": "Vanguard", "health": 700, "mobility": 1, "damage": 4, "difficulty": 2, "range_type": "Melee"},
+    {"name": "Rocket Raccoon", "role": "Strategist", "health": 250, "mobility": 4, "damage": 2, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Rogue", "role": "Vanguard", "health": 675, "mobility": 3, "damage": 4, "difficulty": 4, "range_type": "Melee"},
+    {"name": "Scarlet Witch", "role": "Duelist", "health": 250, "mobility": 3, "damage": 5, "difficulty": 4, "range_type": "Mid Range"},
+    {"name": "Squirrel Girl", "role": "Duelist", "health": 275, "mobility": 3, "damage": 4, "difficulty": 2, "range_type": "Ranged"},
+    {"name": "Spider-Man", "role": "Duelist", "health": 250, "mobility": 5, "damage": 4, "difficulty": 5, "range_type": "Melee"},
+    {"name": "Star-Lord", "role": "Duelist", "health": 250, "mobility": 5, "damage": 4, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Storm", "role": "Duelist", "health": 250, "mobility": 5, "damage": 4, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Thor", "role": "Vanguard", "health": 600, "mobility": 3, "damage": 4, "difficulty": 3, "range_type": "Melee"},
+    {"name": "Ultron", "role": "Strategist", "health": 250, "mobility": 4, "damage": 3, "difficulty": 4, "range_type": "Ranged"},
+    {"name": "Venom", "role": "Vanguard", "health": 675, "mobility": 4, "damage": 4, "difficulty": 3, "range_type": "Melee"},
+    {"name": "White Fox", "role": "Strategist", "health": 275, "mobility": 3, "damage": 2, "difficulty": 3, "range_type": "Ranged"},
+    {"name": "Winter Soldier", "role": "Duelist", "health": 275, "mobility": 3, "damage": 5, "difficulty": 3, "range_type": "Mid Range"},
+    {"name": "Wolverine", "role": "Duelist", "health": 350, "mobility": 4, "damage": 5, "difficulty": 4, "range_type": "Melee"}
 ]
 
 full_df = pd.DataFrame(data)
@@ -349,10 +223,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+st.caption("Roles and health are based on current Marvel Rivals hero data. Mobility, damage, difficulty, and range labels are app comparison ratings for browsing.")
+
 st.sidebar.header("Filters")
 role_filter = st.sidebar.selectbox("Role", ["All"] + sorted(df["role"].unique().tolist()))
 search_text = st.sidebar.text_input("Search roster by name")
-min_health = st.sidebar.slider("Minimum health", 200, 700, 200)
+min_health = st.sidebar.slider("Minimum health", 200, 850, 200)
 min_damage = st.sidebar.slider("Minimum damage", 1, 5, 1)
 
 if role_filter != "All":
@@ -434,7 +310,7 @@ with tab2:
             df["name"].tolist()
         )
         character_info = df[df["name"] == selected_character].iloc[0]
-        role_class = character_info["role"].lower()
+        role_class = character_info["role"].lower().replace(" ", "-")
 
         c1, c2 = st.columns([1, 1])
 
@@ -456,18 +332,18 @@ with tab2:
                 <div class="stat-label">Health</div>
                 <div class="stat-value">{character_info['health']}</div>
                 <br>
-                <div class="stat-label">Mobility</div>
+                <div class="stat-label">Mobility Rating</div>
                 <div class="stat-value">{character_info['mobility']}</div>
                 <br>
-                <div class="stat-label">Damage</div>
+                <div class="stat-label">Damage Rating</div>
                 <div class="stat-value">{character_info['damage']}</div>
                 <br>
-                <div class="stat-label">Difficulty</div>
+                <div class="stat-label">Difficulty Rating</div>
                 <div class="stat-value">{character_info['difficulty']}</div>
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("<div class='small-note'>Stat guide: Health shows survivability, Mobility shows movement potential, Damage shows pressure, and Difficulty shows how hard the hero is to master.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='small-note'>Stat guide: Health is current roster data. Mobility, damage, and difficulty are app comparison ratings for easier browsing.</div>", unsafe_allow_html=True)
 
         chart_df = pd.DataFrame(
             {
@@ -481,15 +357,6 @@ with tab2:
             }
         )
         st.bar_chart(chart_df.set_index("Stat"))
-
-        with st.expander("Strengths"):
-            st.write(character_info["strengths"])
-
-        with st.expander("Weaknesses"):
-            st.write(character_info["weaknesses"])
-
-        with st.expander("Playstyle Summary"):
-            st.write(character_info["playstyle"])
 
 with tab3:
     st.markdown("<h2 class='section-title'>Side-by-Side Comparison</h2>", unsafe_allow_html=True)
@@ -550,7 +417,3 @@ with tab3:
     st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
     st.dataframe(compare_table, use_container_width=True, hide_index=True)
     st.markdown("</div>", unsafe_allow_html=True)
-
-    with st.expander("Comparison Notes"):
-        st.write(f"{compare_1}: {first_row['playstyle']}")
-        st.write(f"{compare_2}: {second_row['playstyle']}")
