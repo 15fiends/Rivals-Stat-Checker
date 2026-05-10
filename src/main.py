@@ -50,7 +50,24 @@ def get_image_filename(character_name: str) -> str:
 
 
 def get_image_path(character_name: str) -> str:
-    return os.path.join(IMAGES_PATH, get_image_filename(character_name))
+    filename_candidates = [
+        get_image_filename(character_name),
+        (
+            character_name.lower()
+            .replace("-", "_")
+            .replace(" ", "_")
+            .replace("&", "and")
+            .replace("__", "_")
+            + ".png"
+        ),
+    ]
+
+    for filename in dict.fromkeys(filename_candidates):
+        image_path = os.path.join(IMAGES_PATH, filename)
+        if os.path.exists(image_path):
+            return image_path
+
+    return os.path.join(IMAGES_PATH, filename_candidates[0])
 
 
 def get_image_mime_type(image_path: str) -> str:
