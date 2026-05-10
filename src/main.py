@@ -602,11 +602,6 @@ with tabs[0]:
         avg_damage = round(filtered_df["damage"].mean(), 1) if not filtered_df.empty else 0
         st.markdown(f"<div class='metric-card'><h3>Average Damage</h3><h2>{avg_damage}</h2></div>", unsafe_allow_html=True)
 
-    if filtered_df.empty:
-        st.warning("No characters match your current filters.")
-    else:
-        st.dataframe(filtered_df, use_container_width=True, hide_index=True)
-
     st.markdown("## Top Character Picks")
     top_stat = st.selectbox(
         "Show top characters by",
