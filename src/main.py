@@ -228,7 +228,10 @@ st.markdown("""
         color: white;
     }
 
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+
     .stTabs [data-baseweb="tab"] {
         background-color: rgba(20, 30, 46, 0.92);
         border-radius: 12px 12px 0 0;
@@ -368,18 +371,26 @@ with tabs[0]:
         st.dataframe(filtered_df, use_container_width=True, hide_index=True)
 
 with tabs[1]:
+    st.markdown("## Character Details")
+
     if filtered_df.empty:
         st.warning("No characters match your current filters.")
     else:
         selected_character = st.selectbox("Choose a character", filtered_df["name"].tolist())
-        character_info = filtered_df[filtered_df["name"] == selected_character].iloc[0]
         show_character_header(selected_character)
 
+        character_info = filtered_df[filtered_df["name"] == selected_character].iloc[0]
+
         left_col, right_col = st.columns(2)
+
         with left_col:
-            st.markdown(f"<div class='role-pill {role_class(character_info['role'])}'>{character_info['role']}</div>", unsafe_allow_html=True)
+            st.markdown(
+                f"<div class='role-pill {role_class(character_info['role'])}'>{character_info['role']}</div>",
+                unsafe_allow_html=True
+            )
             st.write(f"Range Type: {character_info['range_type']}")
             st.write(f"Health: {character_info['health']}")
+
         with right_col:
             chart_df = pd.DataFrame(
                 {
@@ -395,14 +406,17 @@ with tabs[1]:
             st.bar_chart(chart_df.set_index("Stat"))
 
 with tabs[2]:
-    compare_options = filtered_df["name"].tolist() if not filtered_df.empty else all_character_names
-    compare_1 = st.selectbox("First character", compare_options, key="compare_1")
-    compare_2 = st.selectbox("Second character", compare_options, key="compare_2")
+    st.markdown("## Character Comparison")
 
-    top1, top2 = st.columns(2)
-    with top1:
+    compare_options = filtered_df["name"].tolist() if not filtered_df.empty else all_character_names
+    compare_col1, compare_col2 = st.columns(2)
+
+    with compare_col1:
+        compare_1 = st.selectbox("First character", compare_options, key="compare_1")
         show_character_header(compare_1)
-    with top2:
+
+    with compare_col2:
+        compare_2 = st.selectbox("Second character", compare_options, key="compare_2")
         show_character_header(compare_2)
 
     first_row = full_df[full_df["name"] == compare_1].iloc[0]
@@ -421,6 +435,7 @@ with tabs[2]:
     st.bar_chart(pd.DataFrame(comparison_rows).set_index("Stat"))
 
 with tabs[3]:
+    st.markdown("## Tier Lists")
     st.write("Build a tier list, then save it and load it later.")
 
     tier_prefix = st.text_input(
@@ -478,6 +493,7 @@ with tabs[3]:
     st.dataframe(pd.DataFrame(tier_summary_rows), use_container_width=True, hide_index=True)
 
 with tabs[4]:
+    st.markdown("## Team Comps")
     st.write("Build a team of 6, then save it and load it later.")
 
     team_name = st.text_input("Team comp name", value=st.session_state.current_team_name)
