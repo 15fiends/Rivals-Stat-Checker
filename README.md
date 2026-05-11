@@ -11,25 +11,6 @@ Rivals Stat Checker is a Streamlit app for exploring Marvel Rivals characters, c
 - Create, save, load, and delete team compositions
 - Display local character art from the project data folders
 
-## How To Run
-
-1. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-2. Run the graded app:
-
-```bash
-streamlit run dist/main.py
-```
-
-3. Optional development run:
-
-```bash
-streamlit run src/main.py
-```
 
 ## How To Use
 
@@ -39,23 +20,6 @@ streamlit run src/main.py
 - Open `Tier Lists` to build and save your own rankings.
 - Open `Team Comps` to save six-character squads.
 
-## File Structure
-
-- `README.md`: project overview, instructions, and file descriptions
-- `demo.mp4`: short demo video of the app
-- `requirements.txt`: Python dependencies used by the project
-- `src/`: development version of the project
-- `src/main.py`: development entry point for the Streamlit app
-- `src/data/`: development data files and character images
-- `dist/`: stable production version that should be graded
-- `dist/main.py`: stable entry point for the graded app
-- `dist/data/`: stable copied data used by the graded app
-
-## Repository Notes
-
-- `src/` is the playground version where changes are developed first.
-- `dist/` contains the stable version that mirrors the app the instructor should run.
-- The app uses local JSON files for saved tier lists and team comps.
 
 ## Requirements Checklist
 
