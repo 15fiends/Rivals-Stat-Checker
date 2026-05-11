@@ -684,6 +684,7 @@ full_df["real_name"] = full_df["name"].map(lambda name: character_lore.get(name,
 full_df["overview"] = full_df["name"].map(lambda name: character_lore.get(name, {}).get("overview", "No overview added yet."))
 all_character_names = full_df["name"].tolist()
 
+# Session state lets Streamlit remember what the user was working on after each rerun.
 if "current_tierlist_name" not in st.session_state:
     st.session_state.current_tierlist_name = "My List"
 if "current_tierlist_data" not in st.session_state:
@@ -738,6 +739,7 @@ min_damage = st.sidebar.slider("Minimum damage", 1, 5, 1)
 min_mobility = st.sidebar.slider("Minimum mobility rating", 1, 5, 1)
 max_difficulty = st.sidebar.slider("Maximum difficulty rating", 1, 5, 5)
 
+# Each filter trims the dataframe down a little more until only the matching characters are left.
 if role_filter != "All":
     filtered_df = filtered_df[filtered_df["role"] == role_filter]
 if search_text.strip():
@@ -748,6 +750,7 @@ filtered_df = filtered_df[filtered_df["health"] >= min_health]
 filtered_df = filtered_df[filtered_df["damage"] >= min_damage]
 filtered_df = filtered_df[filtered_df["mobility"] >= min_mobility]
 filtered_df = filtered_df[filtered_df["difficulty"] <= max_difficulty]
+# This list gets reused in dropdowns so the same filter rules apply across the whole app.
 filtered_character_names = filtered_df["name"].tolist()
 
 # The sidebar colors shift with the selected role using CSS only, so it stays lightweight.
@@ -827,6 +830,7 @@ with tabs[0]:
         st.markdown(f"<div class='metric-card'><h3>Average Damage</h3><h2>{avg_damage}</h2></div>", unsafe_allow_html=True)
 
     st.markdown("## Top Character Picks")
+    # The user picks one stat, then the app sorts the filtered roster by that stat.
     top_stat = st.selectbox(
         "Show top characters by",
         ["health", "damage", "mobility", "difficulty"],
@@ -884,6 +888,7 @@ with tabs[1]:
             health_min = full_df["health"].min()
             health_max = full_df["health"].max()
 
+            # Health uses bigger raw numbers than the other stats, so it gets scaled down to fit the radar chart.
             if health_max > health_min:
                 health_rating = 1 + 4 * (
                     (character_info["health"] - health_min) / (health_max - health_min)
@@ -969,6 +974,7 @@ with tabs[2]:
         health_min = full_df["health"].min()
         health_max = full_df["health"].max()
 
+        # This keeps health on the same 1 to 5 scale as the rest of the comparison stats.
         def normalize_health(health_value: int) -> float:
             if health_max > health_min:
                 return round(1 + 4 * ((health_value - health_min) / (health_max - health_min)), 2)
@@ -989,6 +995,7 @@ with tabs[2]:
         ]
 
         comparison_fig = go.Figure()
+        # Both characters get drawn on the same radar chart so their shapes are easy to compare.
         comparison_fig.add_trace(
             go.Scatterpolar(
                 r=first_values + [first_values[0]],
@@ -1065,11 +1072,13 @@ with tabs[3]:
             st.session_state.current_tierlist_data = empty_tierlist()
             st.rerun()
     with a2:
+        # Loading replaces the current in-progress list with a saved one from disk.
         if st.button("Load Tier List") and saved_tierlist_name != "None":
             st.session_state.current_tierlist_name = saved_tierlist_name
             st.session_state.current_tierlist_data = sanitize_tierlist(tierlists_store[saved_tierlist_name])
             st.rerun()
     with a3:
+        # Saving writes the current session state back into the JSON file.
         if st.button("Save Tier List"):
             tierlists_store[st.session_state.current_tierlist_name] = st.session_state.current_tierlist_data
             save_json(TIERLISTS_PATH, tierlists_store)
@@ -1089,6 +1098,7 @@ with tabs[3]:
     if filtered_df.empty:
         st.warning("No characters match your current filters.")
     else:
+        # Assigning a character first removes them from any old tier so they only live in one rank.
         assign_character = st.selectbox("Character to place", filtered_character_names, key="tier_character")
         assign_tier = st.selectbox("Rank", ["S", "A", "B", "C", "D"], key="tier_rank")
 
@@ -1130,11 +1140,13 @@ with tabs[4]:
             st.session_state.current_team_data = empty_team_comp()
             st.rerun()
     with b2:
+        # This swaps the current team builder state with a previously saved comp.
         if st.button("Load Team Comp") and saved_comp_name != "None":
             st.session_state.current_team_name = saved_comp_name
             st.session_state.current_team_data = sanitize_team_comp(team_comps_store[saved_comp_name])
             st.rerun()
     with b3:
+        # Saving the team comp stores all six current slots under the chosen name.
         if st.button("Save Team Comp"):
             team_comps_store[st.session_state.current_team_name] = st.session_state.current_team_data
             save_json(TEAM_COMPS_PATH, team_comps_store)
@@ -1155,6 +1167,7 @@ with tabs[4]:
     cols_bottom = st.columns(3)
     all_cols = cols_top + cols_bottom
 
+    # Each slot reuses the filtered dropdown options so team building follows the sidebar filters too.
     options = [""] + filtered_character_names
     for i, col in enumerate(all_cols):
         with col:
