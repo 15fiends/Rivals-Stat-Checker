@@ -25,5 +25,3 @@ Rivals Stat Checker is a Streamlit app for exploring Marvel Rivals characters, c
 
 - Language: Python 3
 - Libraries: Streamlit, Pandas, Plotly
-- Graded run command: `streamlit run dist/main.py`
-
